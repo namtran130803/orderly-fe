@@ -1,17 +1,43 @@
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { Phone, Lock, User } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useMutation } from '@tanstack/react-query';
+
 import { paths } from '@/config/paths';
+import { registerResolver, type RegisterDto } from '@/schemas/auth.schema';
+import { authService } from '@/services/auth.service';
+import { useAuthStore } from '@/stores/auth.store';
+import { LoadingOverlay } from '@/components/LoadingOverlay';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const setToken = useAuthStore((s) => s.setToken);
+  const setUser = useAuthStore((s) => s.setUser);
 
-  const handleRegister = (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    navigate('/', { replace: true });
+  const { mutate, isPending } = useMutation({
+    mutationFn: (data: RegisterDto) => authService.register(data),
+    onSuccess: (res) => {
+      const { token, user } = res.data.data;
+      setToken(token);
+      setUser(user);
+      toast.success(res.data.message);
+      navigate(paths.overview.index, { replace: true });
+    },
+  });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterDto>({
+    resolver: registerResolver,
+    defaultValues: { name: '', phone: '', password: '' },
+  });
+
+  const onError = (errs: typeof errors) => {
+    const firstError = Object.values(errs).find((err) => err.message);
+    if (firstError?.message) toast.error(firstError.message);
   };
 
   return (
@@ -20,7 +46,8 @@ export const RegisterPage: React.FC = () => {
         Đăng ký tài khoản mới
       </h2>
 
-      <form onSubmit={handleRegister} className="flex-1 flex flex-col">
+      <form onSubmit={handleSubmit((data) => mutate(data), onError)} className="flex-1 flex flex-col relative">
+        {isPending && <LoadingOverlay />}
         <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
           <div className="px-4 flex h-[50px] items-center gap-4">
             <User className="text-(--color-text-placeholder)" size={18} />
@@ -28,8 +55,7 @@ export const RegisterPage: React.FC = () => {
               type="text"
               autoFocus
               placeholder="Họ và tên"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              {...register('name')}
               className="h-full text-sm placeholder:text-(--color-text-placeholder)"
             />
           </div>
@@ -38,8 +64,7 @@ export const RegisterPage: React.FC = () => {
             <input
               type="tel"
               placeholder="Số điện thoại"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              {...register('phone')}
               className="h-full text-sm placeholder:text-(--color-text-placeholder)"
             />
           </div>
@@ -48,8 +73,7 @@ export const RegisterPage: React.FC = () => {
             <input
               type="password"
               placeholder="Mật khẩu"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              {...register('password')}
               className="h-full text-sm placeholder:text-(--color-text-placeholder)"
             />
           </div>

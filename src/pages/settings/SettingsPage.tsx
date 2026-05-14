@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Settings,
   Store,
@@ -11,9 +11,12 @@ import {
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { paths } from '@/config/paths';
+import { useAuthStore } from '@/stores/auth.store';
+import { clearAllStores } from '@/stores/clearAllStores';
 
 export const SettingsPage: React.FC = () => {
-  const user = { name: 'Trần Trọng Nam', phone: '0987654321' };
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
 
   return (
     <div className="flex-1 flex flex-col">
@@ -24,11 +27,11 @@ export const SettingsPage: React.FC = () => {
           <div className='flex-1 overflow-auto pb-4'>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) flex items-center gap-4 px-4 py-3 mt-4">
               <div className="size-12 rounded-full bg-(--color-primary) text-(--color-bg-surface) flex items-center justify-center font-bold text-xl">
-                {user.name.charAt(0).toUpperCase()}
+                {user?.name?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{user.name}</p>
-                <p className="text-(--color-text-secondary) truncate">{user.phone}</p>
+                <p className="font-medium truncate">{user?.name || 'Chưa đăng nhập'}</p>
+                <p className="text-(--color-text-secondary) truncate">{user?.phone}</p>
               </div>
             </div>
 
@@ -89,12 +92,16 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) mt-4">
-              <Link to={paths.auth.login}
+              <button
+                onClick={() => {
+                  clearAllStores();
+                  navigate(paths.auth.login, { replace: true });
+                }}
                 className="w-full px-4 py-3 flex items-center justify-start gap-3 text-(--color-danger)"
               >
                 <LogOut size={20} />
                 <span className="text-sm font-semibold">Đăng xuất</span>
-              </Link>
+              </button>
             </div>
           </div>
         </div>

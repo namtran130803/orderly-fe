@@ -1,10 +1,10 @@
-import React from 'react';
 import { BarChart3, Plus, Minus, Utensils } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { formatMoney } from '@/utils/formatMoney';
+import { useStoreStore } from '@/stores/store.store';
 
 export const OverviewPage: React.FC = () => {
-  const selectedStore = { name: 'Quán nướng cô Miu', address: 'Cổ nhuế' };
+  const store = useStoreStore((s) => s.store);
 
   const data = {
     revenue: 12500000,
@@ -27,8 +27,8 @@ export const OverviewPage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col">
       <Header
-        title={selectedStore.name}
-        subtitle={selectedStore.address}
+        title={store.name}
+        subtitle={store.address || undefined}
         Icon={BarChart3}
       />
 
@@ -76,7 +76,7 @@ export const OverviewPage: React.FC = () => {
                     <span className='font-semibold'>{index + 1}.</span>
                     <span>{item.name}</span>
                   </div>
-                  <span className="tabular-nums semibold">
+                  <span className="tabular-nums">
                     {item.qty}
                   </span>
                 </div>

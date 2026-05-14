@@ -1,4 +1,4 @@
-const auth = '/auth'
+const auth = ''
 const expenses = '/expenses'
 const overview = '/overview'
 const settings = '/settings'
