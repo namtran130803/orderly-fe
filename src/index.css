@@ -1,0 +1,61 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-primary: #007aff;
+
+    --color-success: #34c759;
+    --color-danger: #ff3b30;
+    --color-warning: #ff9500;
+    --color-info: #5856d6;
+
+    --color-bg-main: #f7f7f7;
+    --color-bg-surface: #ffffff;
+    --color-bg-active: #f9fafb;
+
+    --color-border-main: #e5e5ea;
+    --color-border-subtle: #f2f2f7;
+
+    --color-text-main: #000000;
+    --color-text-emphasis: #3a3a3c;
+    --color-text-secondary: #8e8e93;
+    --color-text-tertiary: #636366;
+    --color-text-muted: #c7c7cc;
+    --color-text-placeholder: #bdbdbd;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  body {
+    background: var(--color-bg-main);
+    color: var(--color-text-main);
+    font-family: "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:active,
+  a:active {
+    opacity: 0.5;
+  }
+
+  select,
+  input {
+    outline: none;
+    width: 100%;
+  }
+}

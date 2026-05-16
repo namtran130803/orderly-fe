@@ -1,0 +1,1 @@
+export const formatMoney = (val: number) => val.toLocaleString('vi-VN') + ' đ';
