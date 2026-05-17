@@ -24,6 +24,16 @@ export const paths = {
     settings: {
         index: settings
     },
+    employees: {
+        index: '/employees',
+        create: '/employees/create',
+        edit: (id: string | number) => `/employees/${id}/edit`
+    },
+    roles: {
+        index: '/roles',
+        create: '/roles/create',
+        edit: (id: string | number) => `/roles/${id}/edit`
+    },
     stores: {
         index: stores,
         create: `${stores}/create`,

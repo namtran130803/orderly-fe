@@ -19,6 +19,10 @@ import { ExpensesPage } from "./pages/expenses/ExpensesPage";
 import { paths } from "./config/paths";
 import { ExpensesFormPage } from "./pages/expenses/ExpensesFormPage";
 import { SettingsPage } from "./pages/settings/SettingsPage";
+import { EmployeesPage } from "./pages/employees/EmployeesPage";
+import { EmployeeFormPage } from "./pages/employees/EmployeeFormPage";
+import { RolesPage } from "./pages/roles/RolesPage";
+import { RolesFormPage } from "./pages/roles/RolesFormPage";
 import { StoresPage } from "./pages/stores/StoresPage";
 import { StoresFormPage } from "./pages/stores/StoresFormPage";
 import { MenuPage } from "./pages/menu/MenuPage";
@@ -88,6 +92,32 @@ const router = createBrowserRouter([
                   {
                     path: paths.settings.index,
                     element: <SettingsPage />
+                  },
+                  // Employees
+                  {
+                    path: paths.employees.index,
+                    element: <EmployeesPage />
+                  },
+                  {
+                    path: paths.employees.create,
+                    element: <EmployeeFormPage type="create" />
+                  },
+                  {
+                    path: paths.employees.edit(":id"),
+                    element: <EmployeeFormPage type="edit" />
+                  },
+                  // Roles
+                  {
+                    path: paths.roles.index,
+                    element: <RolesPage />
+                  },
+                  {
+                    path: paths.roles.create,
+                    element: <RolesFormPage type="create" />
+                  },
+                  {
+                    path: paths.roles.edit(":id"),
+                    element: <RolesFormPage type="edit" />
                   },
                   // Stores
                   {

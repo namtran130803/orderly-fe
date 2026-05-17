@@ -8,6 +8,8 @@ import {
   Activity,
   ChevronRight,
   LogOut,
+  Users,
+  ShieldAlert,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { paths } from '@/config/paths';
@@ -85,6 +87,32 @@ export const SettingsPage: React.FC = () => {
                   <Activity className="text-purple-500" size={20} />
                   <span className="text-sm text-(--color-text-main) font-medium">
                     Quy trình phục vụ
+                  </span>
+                </div>
+                <ChevronRight size={20} className="text-(--color-text-placeholder)" />
+              </Link>
+
+              <Link
+                to={paths.employees.index}
+                className="w-full px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <Users className="text-indigo-500" size={20} />
+                  <span className="text-sm text-(--color-text-main) font-medium">
+                    Quản lý nhân viên
+                  </span>
+                </div>
+                <ChevronRight size={20} className="text-(--color-text-placeholder)" />
+              </Link>
+
+              <Link
+                to={paths.roles.index}
+                className="w-full px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <ShieldAlert className="text-pink-500" size={20} />
+                  <span className="text-sm text-(--color-text-main) font-medium">
+                    Vai trò & Phân quyền
                   </span>
                 </div>
                 <ChevronRight size={20} className="text-(--color-text-placeholder)" />
