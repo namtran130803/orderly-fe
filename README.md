@@ -88,7 +88,7 @@ src/
 │   ├── auth/          # Đăng nhập, đăng ký và token interceptor
 │   ├── dashboard/     # Biểu đồ và thống kê kinh doanh
 │   ├── invoices/      # Quản lý dòng tiền thu chi
-│   ├── menu/          # Thực đơn và danh mục món
+│   ├── menu/          # danh mục món
 │   ├── orders/        # Nghiệp vụ order và thanh toán giỏ hàng
 │   └── stores/        # Lựa chọn và quản lý chi nhánh
 ├── hooks/             # Custom hooks hỗ trợ (useConfirm, useSwipe, useDebounce)

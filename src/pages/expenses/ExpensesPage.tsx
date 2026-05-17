@@ -125,6 +125,7 @@ export const ExpensesPage: React.FC = () => {
 
                           <div className="flex items-center gap-4">
                             <Link
+                              replace
                               to={paths.expenses.edit(expense.id)}
                               state={{ expense }}
                               className="text-(--color-warning)"

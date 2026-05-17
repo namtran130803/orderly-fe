@@ -99,6 +99,7 @@ export const StatusesPage: React.FC = () => {
 
                   <div className="flex items-center gap-4">
                     <Link
+                      replace
                       to={paths.statuses.edit(st.id)}
                       state={{
                         status: st,

@@ -6,6 +6,7 @@ export type Store = {
   address: string | null;
   userId: number;
   createdAt: string;
+  roleName: string[];
 };
 
 export const storeService = {

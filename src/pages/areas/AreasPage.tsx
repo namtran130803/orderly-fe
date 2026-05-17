@@ -103,6 +103,7 @@ export const AreasPage: React.FC = () => {
 
                     <div className="flex items-center gap-4">
                       <Link
+                        replace
                         to={paths.areas.edit(area.id)}
                         state={{ area, tableCount: areaTables.length }}
                         className="text-(--color-warning)"
@@ -133,6 +134,7 @@ export const AreasPage: React.FC = () => {
 
                         <div className="flex items-center gap-4">
                           <Link
+                            replace
                             to={paths.areas.tables.edit(t.id)}
                             state={{ table: t }}
                             className="text-(--color-warning)"
