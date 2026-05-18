@@ -42,11 +42,13 @@ export const EmployeesPage: React.FC = () => {
       <div className="flex-1 relative mt-4">
         <div className="absolute inset-0 flex">
           <div className="flex-1 overflow-auto pb-4">
-            {employees.length === 0 ? (
-              <div className="text-center py-8 text-(--color-text-secondary) italic">
-                Chưa có nhân viên nào trong cửa hàng.
+            {!isLoading && employees.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full text-(--color-text-muted)">
+                <Users size={48} className="mb-2 opacity-50" />
+                <p className="text-sm">Không có nhân viên nào</p>
               </div>
-            ) : (
+            )}
+            {employees.length > 0 && (
               <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
                 {employees.map((emp: any) => (
                   <div
@@ -71,14 +73,14 @@ export const EmployeesPage: React.FC = () => {
                               key={er.storeRole.id}
                               className={cn(
                                 "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border transition-all",
-                                "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/50"
+                                "bg-blue-50 text-blue-700 border-blue-200"
                               )}
                             >
                               {er.storeRole.name}
                             </span>
                           ))
                         ) : (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border transition-all bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/50">
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border transition-all bg-emerald-50 text-emerald-700 border-emerald-200">
                             Chủ cửa hàng
                           </span>
                         )}
@@ -87,7 +89,6 @@ export const EmployeesPage: React.FC = () => {
 
                     <div className="flex items-center gap-4 flex-none">
                       <Link
-                        replace
                         to={paths.employees.edit(emp.id)}
                         state={{ employee: emp }}
                         className="text-(--color-warning)"

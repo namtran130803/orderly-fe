@@ -52,7 +52,7 @@ export const StatusesPage: React.FC = () => {
     <div className="flex-1 flex flex-col relative">
       {isPending && <LoadingOverlay />}
       <Header
-        title="Quy trình phục vụ"
+        title="Quy trình"
         Icon={Activity}
         backUrl={paths.settings.index}
       >
@@ -99,7 +99,6 @@ export const StatusesPage: React.FC = () => {
 
                   <div className="flex items-center gap-4">
                     <Link
-                      replace
                       to={paths.statuses.edit(st.id)}
                       state={{
                         status: st,
@@ -128,7 +127,7 @@ export const StatusesPage: React.FC = () => {
       <ConfirmDialog
         isOpen={deleteTarget !== null}
         title={`Xóa ${deleteTarget?.name}`}
-        description="Trạng thái này sẽ bị xóa khỏi quy trình phục vụ. Hành động này không thể hoàn tác."
+        description="Quy trình này sẽ bị xóa khỏi cửa hàng. Hành động này không thể hoàn tác."
         confirmText="Xóa"
         variant="danger"
         onConfirm={() => {

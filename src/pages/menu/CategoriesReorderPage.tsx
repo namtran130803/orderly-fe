@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/Header';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { paths } from '@/config/paths';
+import { navigateBackOrTo } from '@/lib/browser-history';
 import { categoryService, type Category } from '@/services/category.service';
 import { useStoreStore } from '@/stores/store.store';
 
@@ -34,7 +35,7 @@ export const CategoriesReorderPage: React.FC = () => {
     mutationFn: (ids: number[]) => categoryService.reorder(storeId!, ids),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories', storeId] });
-      navigate(paths.menu.index);
+      navigateBackOrTo(navigate, paths.menu.index);
     },
   });
 

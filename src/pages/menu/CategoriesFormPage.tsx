@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { Header } from '@/components/Header';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { paths } from '@/config/paths';
+import { navigateBackOrTo } from '@/lib/browser-history';
 import { categoryService } from '@/services/category.service';
 import { useStoreStore } from '@/stores/store.store';
 import { createCategoryResolver, type CreateCategoryDto } from '@/schemas/category.schema';
@@ -35,7 +36,7 @@ export const CategoriesFormPage: React.FC<Props> = ({ type }) => {
         : categoryService.update(storeId!, category.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories', storeId] });
-      navigate(paths.menu.index, { replace: true });
+      navigateBackOrTo(navigate, paths.menu.index);
     },
   });
 

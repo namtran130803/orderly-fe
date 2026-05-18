@@ -140,13 +140,13 @@ export const StoresPage: React.FC = () => {
                                 st.roleName.map((role) => (
                                   <span
                                     key={role}
-                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border transition-all bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/50"
+                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border transition-all bg-blue-50 text-blue-700 border-blue-200"
                                   >
                                     {role}
                                   </span>
                                 ))
                               ) : (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border transition-all bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/50">
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border transition-all bg-emerald-50 text-emerald-700 border-emerald-200">
                                   Chủ cửa hàng
                                 </span>
                               )}
@@ -160,7 +160,6 @@ export const StoresPage: React.FC = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                           }}
-                          replace
                           to={paths.stores.edit(st.id)}
                           state={{ store: st }}
                           className="text-(--color-warning)"

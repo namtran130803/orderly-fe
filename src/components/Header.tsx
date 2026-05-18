@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { navigateBackOrTo } from "@/lib/browser-history";
 
 interface ScreenHeaderProps {
   title?: string;
@@ -25,13 +26,7 @@ export const Header: React.FC<ScreenHeaderProps> = ({
         {/* Back button */}
         {backUrl && (
           <button
-            onClick={() => {
-              if (typeof window !== "undefined" && window.history.length > 1) {
-                navigate(-1);
-              } else {
-                navigate(backUrl);
-              }
-            }}
+            onClick={() => navigateBackOrTo(navigate, backUrl)}
             className="text-(--color-primary)"
           >
             <ChevronLeft size={24} />

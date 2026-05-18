@@ -8,10 +8,15 @@ import toast from "react-hot-toast";
 import { Header } from "@/components/Header";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { paths } from "@/config/paths";
+import { navigateBackOrTo } from "@/lib/browser-history";
 import { employeeService } from "@/services/employee.service";
 import { storeRoleService } from "@/services/storeRole.service";
 import { useStoreStore } from "@/stores/store.store";
-import { createEmployeeResolver, type CreateEmployeeDto } from "@/schemas/employee.schema";
+import {
+  createEmployeeResolver,
+  type CreateEmployeeDto,
+} from "@/schemas/employee.schema";
+import { cn } from "@/lib/cn";
 
 type Props = {
   type: "create" | "edit";
@@ -56,10 +61,11 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
 
   // Mutation to create employee
   const { mutate: createEmployee, isPending: isCreating } = useMutation({
-    mutationFn: (data: CreateEmployeeDto) => employeeService.create(storeId!, data),
+    mutationFn: (data: CreateEmployeeDto) =>
+      employeeService.create(storeId!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees", storeId] });
-      navigate(paths.employees.index, { replace: true });
+      navigateBackOrTo(navigate, paths.employees.index);
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Lỗi khi thêm nhân viên");
@@ -72,7 +78,9 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
       return employeeService.assignRoles(storeId!, employee.id, { roleIds });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["employee-roles", storeId, employee?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["employee-roles", storeId, employee?.id],
+      });
       queryClient.invalidateQueries({ queryKey: ["employees", storeId] });
     },
     onError: (err: any) => {
@@ -102,6 +110,7 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
     const current = [...selectedRoleIds];
     const index = current.indexOf(roleId);
     if (index > -1) {
+      if (current.length === 1) return;
       current.splice(index, 1);
     } else {
       current.push(roleId);
@@ -111,7 +120,14 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
 
   const handleToggleRoleEdit = (roleId: number, checked: boolean) => {
     if (updatingRoleId !== null) return;
-    
+    if (
+      !checked &&
+      employeeRoleIds.length === 1 &&
+      employeeRoleIds.includes(roleId)
+    ) {
+      return;
+    }
+
     let newRoleIds = [...employeeRoleIds];
     if (checked) {
       if (!newRoleIds.includes(roleId)) {
@@ -154,7 +170,7 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
           </button>
         ) : (
           <button
-            onClick={() => navigate(paths.employees.index, { replace: true })}
+            onClick={() => navigateBackOrTo(navigate, paths.employees.index)}
             className="text-(--color-primary)"
           >
             <CheckCircle size={24} />
@@ -177,13 +193,13 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
               <input
                 autoFocus
                 type="tel"
-                placeholder="VD: 0901234567..."
+                placeholder="0901234567..."
                 {...register("phone")}
                 className="flex-1 text-right text-sm"
               />
             </div>
 
-            <h3 className="font-semibold text-xs text-(--color-text-secondary) p-4 pb-2 uppercase tracking-wider">
+            <h3 className="font-semibold text-(--color-text-secondary) p-4 pb-2">
               Chọn vai trò
             </h3>
 
@@ -199,8 +215,13 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
                   return (
                     <label
                       key={role.id}
-                      onClick={(e) => { if (isLastRole) e.preventDefault(); }}
-                      className={`flex items-center justify-between px-4 py-3 group select-none ${isLastRole ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                      onClick={(e) => {
+                        if (isLastRole) e.preventDefault();
+                      }}
+                      className={cn(
+                        "flex items-center justify-between px-4 py-3 group select-none",
+                        isLastRole ? "cursor-not-allowed" : "cursor-pointer"
+                      )}
                     >
                       <span className="text-xs font-semibold text-(--color-text-main) group-hover:text-(--color-primary) transition-colors">
                         {role.name}
@@ -208,9 +229,11 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
                       <input
                         type="checkbox"
                         checked={isChecked}
-                        disabled={isLastRole}
                         onChange={() => handleToggleRoleCreate(role.id)}
-                        className="rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer disabled:cursor-not-allowed"
+                        className={cn(
+                          "rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer",
+                          isLastRole && "cursor-not-allowed"
+                        )}
                       />
                     </label>
                   );
@@ -246,29 +269,42 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
                   const isChecked = employeeRoleIds.includes(role.id);
                   const isLastRole = isChecked && employeeRoleIds.length === 1;
                   const isThisUpdating = updatingRoleId === role.id;
-                  const isDisabled = isThisUpdating || isLastRole;
+                  const isLockedLast = isLastRole && !isThisUpdating;
 
                   return (
                     <label
                       key={role.id}
                       onClick={(e) => {
-                        if (isDisabled) e.preventDefault();
+                        if (isThisUpdating || isLastRole) e.preventDefault();
                       }}
-                      className={`flex items-center justify-between px-4 py-3 group select-none ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                      className={cn(
+                        "flex items-center justify-between px-4 py-3 group select-none",
+                        isThisUpdating && "opacity-60 cursor-not-allowed",
+                        isLockedLast && "cursor-not-allowed",
+                        !isThisUpdating && !isLastRole && "cursor-pointer"
+                      )}
                     >
                       <span className="text-xs font-semibold text-(--color-text-main) group-hover:text-(--color-primary) transition-colors">
                         {role.name}
                       </span>
                       <div className="flex items-center gap-2">
                         {isThisUpdating && (
-                          <Loader2 size={16} className="animate-spin text-(--color-primary)" />
+                          <Loader2
+                            size={16}
+                            className="animate-spin text-(--color-primary)"
+                          />
                         )}
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          disabled={isDisabled}
-                          onChange={(e) => handleToggleRoleEdit(role.id, e.target.checked)}
-                          className="rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer disabled:cursor-not-allowed"
+                          disabled={isThisUpdating}
+                          onChange={(e) =>
+                            handleToggleRoleEdit(role.id, e.target.checked)
+                          }
+                          className={cn(
+                            "rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer disabled:cursor-not-allowed",
+                            isLockedLast && "cursor-not-allowed"
+                          )}
                         />
                       </div>
                     </label>

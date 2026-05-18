@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { Header } from "@/components/Header";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { paths } from "@/config/paths";
+import { navigateBackOrTo } from "@/lib/browser-history";
 import { storeRoleService } from "@/services/storeRole.service";
 import { useStoreStore } from "@/stores/store.store";
 import { storeRoleResolver, type StoreRoleDto } from "@/schemas/storeRole.schema";
@@ -45,7 +46,7 @@ export const RolesFormPage: React.FC<Props> = ({ type }) => {
         : storeRoleService.update(storeId!, role.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["store-roles", storeId] });
-      navigate(paths.roles.index, { replace: true });
+      navigateBackOrTo(navigate, paths.roles.index);
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Đã xảy ra lỗi");
@@ -133,10 +134,10 @@ export const RolesFormPage: React.FC<Props> = ({ type }) => {
           </div>
 
           <h3 className="font-semibold text-(--color-text-secondary) p-4 pb-2">
-            Phân quyền chi tiết
+            Phân quyền
           </h3>
 
-          <div className="space-y-4 px-4">
+          <div className="space-y-4">
             {modules.map((moduleItem: any) => {
               const apiCodes = moduleItem.apis.map((a: any) => a.code);
               const isModuleAllSelected = apiCodes.every((code: any) =>
@@ -146,13 +147,18 @@ export const RolesFormPage: React.FC<Props> = ({ type }) => {
                 apiCodes.some((code: any) => selectedPermissions.includes(code)) &&
                 !isModuleAllSelected;
 
+              const permissionRows: any[][] = [];
+              for (let i = 0; i < moduleItem.apis.length; i += 2) {
+                permissionRows.push(moduleItem.apis.slice(i, i + 2));
+              }
+
               return (
                 <div
                   key={moduleItem.code}
-                  className="bg-(--color-bg-surface) border border-(--color-border-main) rounded-lg overflow-hidden transition-all"
+                  className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)"
                 >
                   {/* Module Header */}
-                  <div className="bg-gray-50 dark:bg-gray-900/10 px-3 py-2 flex items-center justify-between border-b border-(--color-border-main)">
+                  <div className="px-3 py-2 flex items-center justify-between">
                     <span className="text-sm font-semibold text-(--color-primary)">
                       {moduleItem.name}
                     </span>
@@ -176,27 +182,54 @@ export const RolesFormPage: React.FC<Props> = ({ type }) => {
                     </label>
                   </div>
 
-                  {/* Module Permissions Grid */}
-                  <div className="p-3 divide-y divide-gray-100 dark:divide-gray-800">
-                    {moduleItem.apis.map((perm: any) => {
-                      const isChecked = selectedPermissions.includes(perm.code);
-                      return (
-                        <label
-                          key={perm.code}
-                          className="flex items-center justify-between py-2.5 cursor-pointer group select-none first:pt-0 last:pb-0"
-                        >
-                          <span className="text-xs font-medium text-(--color-text-main) group-hover:text-(--color-primary) transition-colors">
-                            {perm.name}
-                          </span>
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => handleTogglePermission(perm.code)}
-                            className="rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer"
-                          />
-                        </label>
-                      );
-                    })}
+                  <div className="px-3 py-2">
+                    <table className="w-full border-collapse table-fixed">
+                      <tbody>
+                        {permissionRows.map((pair, rowIdx) => (
+                          <tr
+                            key={`${moduleItem.code}-${rowIdx}`}
+                            className={
+                              rowIdx > 0
+                                ? "border-t border-(--color-border-main)"
+                                : undefined
+                            }
+                          >
+                            {[pair[0], pair[1] ?? null].map((perm, colIdx) => (
+                              <td
+                                key={
+                                  perm
+                                    ? perm.code
+                                    : `${moduleItem.code}-${rowIdx}-empty-${colIdx}`
+                                }
+                                className={
+                                  colIdx === 0
+                                    ? "w-1/2 py-2 pr-4 align-middle border-r border-(--color-border-main)"
+                                    : "w-1/2 py-2 pl-4 align-middle"
+                                }
+                              >
+                                {perm ? (
+                                  <label className="flex items-center justify-between gap-2 cursor-pointer group select-none min-w-0">
+                                    <span className="text-xs font-medium text-(--color-text-main) group-hover:text-(--color-primary) transition-colors min-w-0 truncate">
+                                      {perm.name}
+                                    </span>
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedPermissions.includes(
+                                        perm.code
+                                      )}
+                                      onChange={() =>
+                                        handleTogglePermission(perm.code)
+                                      }
+                                      className="shrink-0 rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer"
+                                    />
+                                  </label>
+                                ) : null}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               );

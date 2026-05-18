@@ -47,7 +47,7 @@ export const SettingsPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <Store className="text-blue-500" size={20} />
                   <span className="text-sm text-(--color-text-main) font-medium">
-                    Danh sách cửa hàng
+                   Cửa hàng
                   </span>
                 </div>
                 <ChevronRight size={20} className="text-(--color-text-placeholder)" />
@@ -60,7 +60,7 @@ export const SettingsPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <BookOpen className="text-emerald-500" size={20} />
                   <span className="text-sm text-(--color-text-main) font-medium">
-                    Danh mục & Món ăn
+                    Thực đơn
                   </span>
                 </div>
                 <ChevronRight size={20} className="text-(--color-text-placeholder)" />
@@ -73,7 +73,7 @@ export const SettingsPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <Grid className="text-orange-500" size={20} />
                   <span className="text-sm text-(--color-text-main) font-medium">
-                    Khu vực & Bàn
+                    Bàn ăn
                   </span>
                 </div>
                 <ChevronRight size={20} className="text-(--color-text-placeholder)" />
@@ -86,7 +86,24 @@ export const SettingsPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <Activity className="text-purple-500" size={20} />
                   <span className="text-sm text-(--color-text-main) font-medium">
-                    Quy trình phục vụ
+                    Quy trình
+                  </span>
+                </div>
+                <ChevronRight size={20} className="text-(--color-text-placeholder)" />
+              </Link>
+            </div>
+
+            <h3 className="font-semibold text-(--color-text-secondary) p-4 pb-2">Nhân viên & vai trò</h3>
+
+            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-gray-200">
+            <Link
+                to={paths.roles.index}
+                className="w-full px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <ShieldAlert className="text-pink-500" size={20} />
+                  <span className="text-sm text-(--color-text-main) font-medium">
+                    Vai trò
                   </span>
                 </div>
                 <ChevronRight size={20} className="text-(--color-text-placeholder)" />
@@ -99,20 +116,7 @@ export const SettingsPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <Users className="text-indigo-500" size={20} />
                   <span className="text-sm text-(--color-text-main) font-medium">
-                    Quản lý nhân viên
-                  </span>
-                </div>
-                <ChevronRight size={20} className="text-(--color-text-placeholder)" />
-              </Link>
-
-              <Link
-                to={paths.roles.index}
-                className="w-full px-4 py-3 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <ShieldAlert className="text-pink-500" size={20} />
-                  <span className="text-sm text-(--color-text-main) font-medium">
-                    Vai trò & Phân quyền
+                    Nhân viên
                   </span>
                 </div>
                 <ChevronRight size={20} className="text-(--color-text-placeholder)" />

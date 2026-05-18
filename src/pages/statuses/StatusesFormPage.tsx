@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { Header } from '@/components/Header';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { paths } from '@/config/paths';
+import { navigateBackOrTo } from '@/lib/browser-history';
 import { statusService } from '@/services/status.service';
 import { useStoreStore } from '@/stores/store.store';
 import { createStatusResolver, type CreateStatusDto } from '@/schemas/status.schema';
@@ -35,7 +36,7 @@ export const StatusesFormPage: React.FC<Props> = ({ type }) => {
         : statusService.update(storeId!, status.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['statuses', storeId] });
-      navigate(paths.statuses.index, { replace: true });
+      navigateBackOrTo(navigate, paths.statuses.index);
     },
   });
 
@@ -59,7 +60,7 @@ export const StatusesFormPage: React.FC<Props> = ({ type }) => {
     <div className="flex-1 flex flex-col relative">
       {isPending && <LoadingOverlay />}
       <Header
-        title={type === 'create' ? 'Thêm Trạng Thái' : 'Sửa Trạng Thái'}
+        title={type === 'create' ? 'Thêm Quy Trình' : 'Sửa Quy Trình'}
         Icon={Activity}
         backUrl={paths.statuses.index}
       >
@@ -76,7 +77,7 @@ export const StatusesFormPage: React.FC<Props> = ({ type }) => {
       <form id="status-form" onSubmit={handleSubmit((data) => mutate(data), onError)} className="flex-1 flex flex-col">
         <div className="mt-4 bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
           <div className="flex px-4 py-3 items-center gap-2">
-            <span className="font-medium">Tên trạng thái</span>
+            <span className="font-medium">Tên quy trình</span>
             <input
               autoFocus
               placeholder="Pha chế..."

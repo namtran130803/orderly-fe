@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { Header } from '@/components/Header';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { paths } from '@/config/paths';
+import { navigateBackOrTo } from '@/lib/browser-history';
 import { tableService } from '@/services/area.service';
 import { useStoreStore } from '@/stores/store.store';
 import { updateTableResolver, type UpdateTableDto } from '@/schemas/table.schema';
@@ -33,7 +34,7 @@ export const TablesFormPage: React.FC<Props> = ({ type }) => {
       tableService.update(storeId!, table.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['areas', storeId] });
-      navigate(paths.areas.index, { replace: true });
+      navigateBackOrTo(navigate, paths.areas.index);
     },
   });
 

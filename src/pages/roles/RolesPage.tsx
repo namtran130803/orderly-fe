@@ -47,10 +47,10 @@ export const RolesPage: React.FC = () => {
   const isPending = isRolesLoading || isDeleting;
 
   return (
-    <div className="flex-1 flex flex-col relative">
+    <div className="flex-1 flex flex-col relative h-full">
       {isPending && <LoadingOverlay />}
       <Header
-        title="Quản lý vai trò"
+        title="Vai trò"
         Icon={ShieldAlert}
         backUrl={paths.settings.index}
       >
@@ -62,11 +62,13 @@ export const RolesPage: React.FC = () => {
       <div className="flex-1 relative mt-4">
         <div className="absolute inset-0 flex">
           <div className="flex-1 overflow-auto pb-4">
-            {roles.length === 0 ? (
-              <div className="text-center py-8 text-(--color-text-secondary) italic">
-                Chưa có vai trò nào được tạo.
+            {!isRolesLoading && roles.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full text-(--color-text-muted)">
+                <ShieldAlert size={48} className="mb-2 opacity-50" />
+                <p className="text-sm">Không có vai trò nào</p>
               </div>
-            ) : (
+            )}
+            {roles.length > 0 && (
               <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
                 {roles.map((role: any) => (
                   <div
@@ -86,7 +88,6 @@ export const RolesPage: React.FC = () => {
 
                     <div className="flex items-center gap-4 flex-none">
                       <Link
-                        replace
                         to={paths.roles.edit(role.id)}
                         state={{ role }}
                         className="text-(--color-warning)"

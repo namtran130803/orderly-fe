@@ -70,7 +70,7 @@ export const AreasPage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col relative">
       {isPending && <LoadingOverlay />}
-      <Header title="Khu vực & Bàn" Icon={Grid} backUrl={paths.settings.index}>
+      <Header title="Bàn ăn" Icon={Grid} backUrl={paths.settings.index}>
         <div className="flex items-center gap-4">
           {areas.length > 1 && (
             <Link to={paths.areas.reorder} className="text-(--color-primary)">
@@ -103,7 +103,6 @@ export const AreasPage: React.FC = () => {
 
                     <div className="flex items-center gap-4">
                       <Link
-                        replace
                         to={paths.areas.edit(area.id)}
                         state={{ area, tableCount: areaTables.length }}
                         className="text-(--color-warning)"
@@ -134,7 +133,6 @@ export const AreasPage: React.FC = () => {
 
                         <div className="flex items-center gap-4">
                           <Link
-                            replace
                             to={paths.areas.tables.edit(t.id)}
                             state={{ table: t }}
                             className="text-(--color-warning)"

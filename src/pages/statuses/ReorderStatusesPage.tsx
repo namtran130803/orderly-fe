@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/Header';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { paths } from '@/config/paths';
+import { navigateBackOrTo } from '@/lib/browser-history';
 import { statusService, STATUS_TYPE, type Status } from '@/services/status.service';
 import { useStoreStore } from '@/stores/store.store';
 
@@ -33,7 +34,7 @@ export const ReorderStatusesPage: React.FC = () => {
     mutationFn: (ids: number[]) => statusService.reorder(storeId!, ids),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['statuses', storeId] });
-      navigate(paths.statuses.index);
+      navigateBackOrTo(navigate, paths.statuses.index);
     },
   });
 
@@ -56,7 +57,7 @@ export const ReorderStatusesPage: React.FC = () => {
     <div className="flex-1 flex flex-col relative">
       {isPending && <LoadingOverlay />}
       <Header
-        title="Sắp xếp trạng thái"
+        title="Sắp xếp quy trình"
         Icon={Activity}
         backUrl={paths.statuses.index}
       >
@@ -73,7 +74,7 @@ export const ReorderStatusesPage: React.FC = () => {
         <div className="absolute inset-0 flex">
           <div className="flex-1 overflow-auto pb-4">
             <p className="p-4 pb-2 text-(--color-text-secondary)">
-              Dùng các nút lên/xuống để thay đổi thứ tự trạng thái trung gian.
+              Dùng các nút lên/xuống để thay đổi thứ tự quy trình.
             </p>
 
             <div className="space-y-2">

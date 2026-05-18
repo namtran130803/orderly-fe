@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { HandCoins, CheckCircle } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -7,9 +7,11 @@ import toast from 'react-hot-toast';
 import { Header } from '@/components/Header';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { paths } from '@/config/paths';
+import { navigateBackOrTo } from '@/lib/browser-history';
 import { expenseService } from '@/services/expense.service';
 import { useStoreStore } from '@/stores/store.store';
 import { createExpenseResolver, type CreateExpenseDto } from '@/schemas/expense.schema';
+import { digitsFromMoneyInput, formatMoneyInputDisplay } from '@/utils/moneyInput';
 
 type Props = {
   type: 'create' | 'edit'
@@ -35,7 +37,7 @@ export const ExpensesFormPage: React.FC<Props> = ({ type }) => {
         : expenseService.update(storeId!, expense.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses', storeId] });
-      navigate(paths.expenses.index, { replace: true });
+      navigateBackOrTo(navigate, paths.expenses.index);
     },
   });
 
@@ -43,6 +45,7 @@ export const ExpensesFormPage: React.FC<Props> = ({ type }) => {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
   } = useForm<CreateExpenseDto>({
     resolver: createExpenseResolver,
@@ -100,11 +103,32 @@ export const ExpensesFormPage: React.FC<Props> = ({ type }) => {
           </div>
           <div className="flex px-4 py-3 items-center gap-2">
             <span className="font-medium">Số tiền</span>
-            <input
-              type="number"
-              placeholder="0"
-              {...register('amount', { valueAsNumber: true })}
-              className="flex-1 text-right tabular-nums"
+            <Controller
+              name="amount"
+              control={control}
+              render={({ field }) => {
+                const digits =
+                  field.value === undefined ||
+                  field.value === null ||
+                  Number(field.value) === 0
+                    ? ''
+                    : String(Math.trunc(Number(field.value)));
+                return (
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    placeholder="0"
+                    className="flex-1 text-right tabular-nums"
+                    value={formatMoneyInputDisplay(digitsFromMoneyInput(digits))}
+                    onChange={(e) => {
+                      const d = digitsFromMoneyInput(e.target.value);
+                      field.onChange(d === '' ? 0 : Number(d));
+                    }}
+                    onBlur={field.onBlur}
+                  />
+                );
+              }}
             />
           </div>
           <div className="flex px-4 py-3 items-center gap-2 justify-between">

@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/Header';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { paths } from '@/config/paths';
+import { navigateBackOrTo } from '@/lib/browser-history';
 import { areaService, type Area } from '@/services/area.service';
 import { useStoreStore } from '@/stores/store.store';
 
@@ -34,7 +35,7 @@ export const ReorderAreasPage: React.FC = () => {
     mutationFn: (ids: number[]) => areaService.reorder(storeId!, ids),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['areas', storeId] });
-      navigate(paths.areas.index);
+      navigateBackOrTo(navigate, paths.areas.index);
     },
   });
 

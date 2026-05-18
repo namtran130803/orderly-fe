@@ -79,7 +79,7 @@ export const MenuPage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col relative">
       {isPending && <LoadingOverlay />}
-      <Header title="Danh mục" Icon={BookOpen} backUrl={paths.settings.index}>
+      <Header title="Thực đơn" Icon={BookOpen} backUrl={paths.settings.index}>
         <div className="flex items-center gap-4">
           {categories.length > 1 && (
             <Link
@@ -130,7 +130,6 @@ export const MenuPage: React.FC = () => {
                       </Link>
 
                       <Link
-                        replace
                         to={paths.menu.categories.edit(cat.id)}
                         state={{
                           category: cat,
@@ -167,7 +166,6 @@ export const MenuPage: React.FC = () => {
 
                         <div className="flex items-center gap-4">
                           <Link
-                            replace
                             to={paths.menu.items.edit(item.id)}
                             state={{
                               item,

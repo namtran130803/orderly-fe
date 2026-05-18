@@ -19,8 +19,6 @@ export const SplashLayout: React.FC = () => {
 
   const isAuthRoute = authRoutes.includes(location.pathname);
 
-  if (!token && !isAuthRoute) return <Navigate to={paths.auth.login} replace />;
-
   const { isFetching, data, isError } = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
@@ -46,6 +44,10 @@ export const SplashLayout: React.FC = () => {
     else if (!token && !isAuthRoute) navigate(paths.auth.login, { replace: true });
     else setIsRedirecting(false);
   }, [isFetching, token, isAuthRoute, navigate]);
+
+  if (!token && !isAuthRoute) {
+    return <Navigate to={paths.auth.login} replace />;
+  }
 
   if (isFetching || isRedirecting) {
     return (

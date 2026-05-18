@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { Header } from '@/components/Header';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { paths } from '@/config/paths';
+import { navigateBackOrTo } from '@/lib/browser-history';
 import { areaService } from '@/services/area.service';
 import { useStoreStore } from '@/stores/store.store';
 import { createAreaResolver, type CreateAreaDto } from '@/schemas/area.schema';
@@ -35,7 +36,7 @@ export const AreasFormPage: React.FC<Props> = ({ type }) => {
         : areaService.update(storeId!, area.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['areas', storeId] });
-      navigate(paths.areas.index, { replace: true });
+      navigateBackOrTo(navigate, paths.areas.index);
     },
   });
 

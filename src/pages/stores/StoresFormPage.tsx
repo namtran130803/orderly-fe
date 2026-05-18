@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/Header';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { paths } from '@/config/paths';
+import { navigateBackOrTo } from '@/lib/browser-history';
 import { storeService } from '@/services/store.service';
 import { useStoreStore } from '@/stores/store.store';
 import { createStoreResolver, type CreateStoreDto } from '@/schemas/store.schema';
@@ -33,8 +34,12 @@ export const StoresFormPage: React.FC<Props> = ({ type }) => {
       type === 'create' ? storeService.create(data) : storeService.update(store?.id, data),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['stores'] });
-      if (type === 'create') setStore(res.data.data);
-      navigate(type === 'create' ? paths.overview.index : paths.stores.index, { replace: true });
+      if (type === 'create') {
+        setStore(res.data.data);
+        navigate(paths.overview.index, { replace: true });
+        return;
+      }
+      navigateBackOrTo(navigate, paths.stores.index);
     },
   });
 

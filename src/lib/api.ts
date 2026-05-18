@@ -20,6 +20,9 @@ api.interceptors.response.use(
   (error) => {
     const message = error.response?.data?.error?.message;
     if (message) toast.error(message);
+    else if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+      toast.error('Không kết nối được máy chủ. Kiểm tra mạng hoặc backend đang chạy.');
+    }
     if (error.response?.status === 401) {
       clearAllStores();
     }
