@@ -7,6 +7,10 @@ const menu = '/menu'
 const areas = '/areas'
 const statuses = '/statuses'
 const orders = '/orders'
+const attendance = '/attendance'
+const schedule = '/schedule'
+const leave = '/leave'
+const payroll = '/payroll'
 
 export const paths = {
     auth: {
@@ -22,12 +26,14 @@ export const paths = {
         edit: (id: string | number) => `${expenses}/${id}/edit`
     },
     settings: {
-        index: settings
+        index: settings,
+        hrGuide: `${settings}/hr-guide`,
     },
     employees: {
         index: '/employees',
         create: '/employees/create',
-        edit: (id: string | number) => `/employees/${id}/edit`
+        edit: (id: string | number) => `/employees/${id}/edit`,
+        salary: (id: string | number) => `/employees/${id}/salary`,
     },
     roles: {
         index: '/roles',
@@ -71,5 +77,26 @@ export const paths = {
         selectTable: `${orders}/select-table`,
         selectMenu: `${orders}/select-menu`,
         summary: `${orders}/summary`
-    }
+    },
+    attendance: {
+        index: attendance,
+        kiosk: `${attendance}/kiosk`,
+        scan: `${attendance}/scan`,
+        employee: (id: string | number) => `${attendance}/employees/${id}`,
+        editRecord: (id: string | number) => `${attendance}/records/${id}/edit`,
+        createRecord: `${attendance}/records/create`,
+    },
+    schedule: {
+        index: schedule,
+        overrideCreate: `${schedule}/overrides/create`,
+    },
+    leave: {
+        index: leave,
+        detail: (id: string | number) => `${leave}/${id}`,
+        request: `${leave}/request`,
+    },
+    payroll: {
+        index: payroll,
+        employeeDetail: (id: string | number) => `${payroll}/employees/${id}`,
+    },
 }

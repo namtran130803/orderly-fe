@@ -12,11 +12,19 @@ import { navigateBackOrTo } from "@/lib/browser-history";
 import { employeeService } from "@/services/employee.service";
 import { storeRoleService } from "@/services/storeRole.service";
 import { useStoreStore } from "@/stores/store.store";
-import {
-  createEmployeeResolver,
-  type CreateEmployeeDto,
-} from "@/schemas/employee.schema";
+import { createEmployeeResolver, type CreateEmployeeDto } from "@/schemas/employee.schema";
+import { digitsFromMoneyInput, formatMoneyInputDisplay } from "@/utils/moneyInput";
 import { cn } from "@/lib/cn";
+
+const DAY_LABELS: { value: number; label: string }[] = [
+  { value: 1, label: "T2" },
+  { value: 2, label: "T3" },
+  { value: 3, label: "T4" },
+  { value: 4, label: "T5" },
+  { value: 5, label: "T6" },
+  { value: 6, label: "T7" },
+  { value: 7, label: "CN" },
+];
 
 type Props = {
   type: "create" | "edit";
@@ -31,13 +39,18 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
 
   const [updatingRoleId, setUpdatingRoleId] = useState<number | null>(null);
 
+  // Local UI state for salary inputs (controlled outside react-hook-form to support formatted display)
+  const [salaryType, setSalaryType] = useState<"MONTHLY" | "HOURLY">("MONTHLY");
+  const [amountDigits, setAmountDigits] = useState("");
+  const [useStoreDays, setUseStoreDays] = useState(true);
+  const [customDays, setCustomDays] = useState<number[]>([]);
+
   useEffect(() => {
     if (type === "edit" && !employee) {
       navigate(paths.employees.index, { replace: true });
     }
   }, [type, employee, navigate]);
 
-  // Fetch all available roles in the store
   const { data: roles = [], isLoading: isLoadingRoles } = useQuery({
     queryKey: ["store-roles", storeId],
     queryFn: async () => {
@@ -47,7 +60,6 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
     enabled: !!storeId,
   });
 
-  // Fetch active roles for the employee (only in edit mode)
   const { data: employeeRoles = [], isLoading: isLoadingEmpRoles } = useQuery({
     queryKey: ["employee-roles", storeId, employee?.id],
     queryFn: async () => {
@@ -59,10 +71,8 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
 
   const employeeRoleIds = employeeRoles.map((r: any) => r.id);
 
-  // Mutation to create employee
   const { mutate: createEmployee, isPending: isCreating } = useMutation({
-    mutationFn: (data: CreateEmployeeDto) =>
-      employeeService.create(storeId!, data),
+    mutationFn: (data: CreateEmployeeDto) => employeeService.create(storeId!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees", storeId] });
       navigateBackOrTo(navigate, paths.employees.index);
@@ -72,15 +82,11 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
     },
   });
 
-  // Mutation to assign roles
   const { mutate: assignRoles } = useMutation({
-    mutationFn: (roleIds: number[]) => {
-      return employeeService.assignRoles(storeId!, employee.id, { roleIds });
-    },
+    mutationFn: (roleIds: number[]) =>
+      employeeService.assignRoles(storeId!, employee.id, { roleIds }),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["employee-roles", storeId, employee?.id],
-      });
+      queryClient.invalidateQueries({ queryKey: ["employee-roles", storeId, employee?.id] });
       queryClient.invalidateQueries({ queryKey: ["employees", storeId] });
     },
     onError: (err: any) => {
@@ -89,7 +95,6 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
     onSettled: () => setUpdatingRoleId(null),
   });
 
-  // Form for creation mode
   const {
     register,
     handleSubmit,
@@ -101,6 +106,10 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
     defaultValues: {
       phone: "",
       roleIds: [],
+      salaryType: "MONTHLY",
+      baseSalary: 0,
+      hourlyRate: null,
+      workDays: [],
     },
   });
 
@@ -120,25 +129,53 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
 
   const handleToggleRoleEdit = (roleId: number, checked: boolean) => {
     if (updatingRoleId !== null) return;
-    if (
-      !checked &&
-      employeeRoleIds.length === 1 &&
-      employeeRoleIds.includes(roleId)
-    ) {
-      return;
-    }
+    if (!checked && employeeRoleIds.length === 1 && employeeRoleIds.includes(roleId)) return;
 
     let newRoleIds = [...employeeRoleIds];
     if (checked) {
-      if (!newRoleIds.includes(roleId)) {
-        newRoleIds.push(roleId);
-      }
+      if (!newRoleIds.includes(roleId)) newRoleIds.push(roleId);
     } else {
       newRoleIds = newRoleIds.filter((id: number) => id !== roleId);
     }
 
     setUpdatingRoleId(roleId);
     assignRoles(newRoleIds);
+  };
+
+  const handleSalaryTypeChange = (type: "MONTHLY" | "HOURLY") => {
+    setSalaryType(type);
+    setValue("salaryType", type);
+    setAmountDigits("");
+  };
+
+  const handleAmountChange = (raw: string) => {
+    const digits = digitsFromMoneyInput(raw);
+    setAmountDigits(digits);
+    const num = Number(digits || "0");
+    if (salaryType === "MONTHLY") {
+      setValue("baseSalary", num);
+      setValue("hourlyRate", null);
+    } else {
+      setValue("hourlyRate", num);
+      setValue("baseSalary", 0);
+    }
+  };
+
+  const toggleCustomDay = (val: number) => {
+    const next = customDays.includes(val)
+      ? customDays.filter((d) => d !== val)
+      : [...customDays, val].sort((a, b) => a - b);
+    setCustomDays(next);
+    setValue("workDays", useStoreDays ? [] : next);
+  };
+
+  const handleScheduleModeChange = (storeDays: boolean) => {
+    setUseStoreDays(storeDays);
+    setValue("workDays", storeDays ? [] : customDays);
+  };
+
+  const onSubmit = (data: CreateEmployeeDto) => {
+    createEmployee(data);
   };
 
   const onError = (errs: typeof errors) => {
@@ -181,28 +218,115 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
       {type === "create" ? (
         <form
           id="employee-form"
-          onSubmit={handleSubmit((data) => createEmployee(data), onError)}
+          onSubmit={handleSubmit(onSubmit, onError)}
           className="flex-1 flex flex-col min-h-0 overflow-hidden"
         >
           <div className="flex-1 overflow-auto pb-6">
-            {/* Phone Input */}
+            {/* Phone */}
             <div className="mt-4 bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex items-center gap-4">
-              <span className="font-medium text-sm text-(--color-text-main) flex-none">
-                Số điện thoại
-              </span>
+              <span className="font-medium text-sm text-(--color-text-main) flex-none">Số điện thoại</span>
               <input
                 autoFocus
                 type="tel"
-                placeholder="0901234567..."
+                placeholder="0901234567"
                 {...register("phone")}
                 className="flex-1 text-right text-sm"
               />
             </div>
 
-            <h3 className="font-semibold text-(--color-text-secondary) p-4 pb-2">
-              Chọn vai trò
-            </h3>
+            {/* Salary type */}
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Loại lương</h3>
+            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
+              {(["MONTHLY", "HOURLY"] as const).map((type) => (
+                <label key={type} className="flex items-center justify-between px-4 py-3 cursor-pointer">
+                  <span className="text-sm text-(--color-text-main)">
+                    {type === "MONTHLY" ? "Lương tháng" : "Lương giờ"}
+                  </span>
+                  <input
+                    type="radio"
+                    name="salaryTypeRadio"
+                    checked={salaryType === type}
+                    onChange={() => handleSalaryTypeChange(type)}
+                    className="text-(--color-primary) size-4"
+                  />
+                </label>
+              ))}
+            </div>
 
+            {/* Amount */}
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">
+              {salaryType === "MONTHLY" ? "Lương tháng" : "Lương mỗi giờ"}
+            </h3>
+            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex items-center gap-4">
+              <span className="text-sm text-(--color-text-secondary) flex-none">₫</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={formatMoneyInputDisplay(amountDigits)}
+                onChange={(e) => handleAmountChange(e.target.value)}
+                placeholder="0"
+                className="flex-1 text-right text-sm"
+              />
+            </div>
+            <p className="px-4 pt-1 text-xs text-(--color-text-secondary)">
+              {salaryType === "MONTHLY"
+                ? "Lương đủ công trong 1 tháng"
+                : "Tiền nhận cho mỗi giờ làm việc"}
+            </p>
+
+            {/* Schedule */}
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Lịch làm việc</h3>
+            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
+              <label className="flex items-center justify-between px-4 py-3 cursor-pointer">
+                <span className="text-sm text-(--color-text-main)">Dùng lịch cửa hàng</span>
+                <input
+                  type="radio"
+                  name="scheduleMode"
+                  checked={useStoreDays}
+                  onChange={() => handleScheduleModeChange(true)}
+                  className="text-(--color-primary) size-4"
+                />
+              </label>
+              <label className="flex items-center justify-between px-4 py-3 cursor-pointer">
+                <span className="text-sm text-(--color-text-main)">Lịch riêng</span>
+                <input
+                  type="radio"
+                  name="scheduleMode"
+                  checked={!useStoreDays}
+                  onChange={() => handleScheduleModeChange(false)}
+                  className="text-(--color-primary) size-4"
+                />
+              </label>
+            </div>
+
+            {!useStoreDays && (
+              <>
+                <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Ngày làm</h3>
+                <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex flex-wrap gap-2">
+                  {DAY_LABELS.map(({ value, label }) => {
+                    const checked = customDays.includes(value);
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => toggleCustomDay(value)}
+                        className={cn(
+                          "px-3 py-1.5 text-xs font-semibold border transition-colors",
+                          checked
+                            ? "bg-(--color-primary) text-white border-(--color-primary)"
+                            : "bg-(--color-bg-main) text-(--color-text-secondary) border-(--color-border-main)",
+                        )}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {/* Roles */}
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Vai trò</h3>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-gray-100 dark:divide-gray-800">
               {roles.length === 0 ? (
                 <div className="text-center py-4 text-(--color-text-secondary) italic text-xs">
@@ -215,12 +339,10 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
                   return (
                     <label
                       key={role.id}
-                      onClick={(e) => {
-                        if (isLastRole) e.preventDefault();
-                      }}
+                      onClick={(e) => { if (isLastRole) e.preventDefault(); }}
                       className={cn(
                         "flex items-center justify-between px-4 py-3 group select-none",
-                        isLastRole ? "cursor-not-allowed" : "cursor-pointer"
+                        isLastRole ? "cursor-not-allowed" : "cursor-pointer",
                       )}
                     >
                       <span className="text-xs font-semibold text-(--color-text-main) group-hover:text-(--color-primary) transition-colors">
@@ -232,7 +354,7 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
                         onChange={() => handleToggleRoleCreate(role.id)}
                         className={cn(
                           "rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer",
-                          isLastRole && "cursor-not-allowed"
+                          isLastRole && "cursor-not-allowed",
                         )}
                       />
                     </label>
@@ -245,7 +367,6 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
       ) : (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <div className="flex-1 overflow-auto pb-6">
-            {/* Employee Summary Card */}
             <div className="mt-4 bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex flex-col gap-1">
               <span className="font-semibold text-(--color-text-main) text-sm truncate">
                 {employee?.user?.name}
@@ -255,10 +376,7 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
               </span>
             </div>
 
-            <h3 className="font-semibold text-(--color-text-secondary) p-4 pb-2">
-              Các vai trò
-            </h3>
-
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Vai trò</h3>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-gray-100 dark:divide-gray-800">
               {roles.length === 0 ? (
                 <div className="text-center py-4 text-(--color-text-secondary) italic text-xs">
@@ -281,7 +399,7 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
                         "flex items-center justify-between px-4 py-3 group select-none",
                         isThisUpdating && "opacity-60 cursor-not-allowed",
                         isLockedLast && "cursor-not-allowed",
-                        !isThisUpdating && !isLastRole && "cursor-pointer"
+                        !isThisUpdating && !isLastRole && "cursor-pointer",
                       )}
                     >
                       <span className="text-xs font-semibold text-(--color-text-main) group-hover:text-(--color-primary) transition-colors">
@@ -289,21 +407,16 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
                       </span>
                       <div className="flex items-center gap-2">
                         {isThisUpdating && (
-                          <Loader2
-                            size={16}
-                            className="animate-spin text-(--color-primary)"
-                          />
+                          <Loader2 size={16} className="animate-spin text-(--color-primary)" />
                         )}
                         <input
                           type="checkbox"
                           checked={isChecked}
                           disabled={isThisUpdating}
-                          onChange={(e) =>
-                            handleToggleRoleEdit(role.id, e.target.checked)
-                          }
+                          onChange={(e) => handleToggleRoleEdit(role.id, e.target.checked)}
                           className={cn(
                             "rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer disabled:cursor-not-allowed",
-                            isLockedLast && "cursor-not-allowed"
+                            isLockedLast && "cursor-not-allowed",
                           )}
                         />
                       </div>

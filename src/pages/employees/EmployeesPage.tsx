@@ -1,10 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import {
-  Pencil,
-  Users,
-  CirclePlus,
-} from "lucide-react";
+import { Pencil, Users, CirclePlus, Wallet } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import { Header } from "@/components/Header";
@@ -12,7 +8,16 @@ import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { paths } from "@/config/paths";
 import { employeeService } from "@/services/employee.service";
 import { useStoreStore } from "@/stores/store.store";
+import { formatMoney } from "@/utils/formatMoney";
 import { cn } from "@/lib/cn";
+import type { Employee } from "@/schemas/employee.schema";
+
+function salaryLabel(emp: Employee): string {
+  if (emp.salaryType === "HOURLY") {
+    return `${formatMoney(emp.hourlyRate ?? 0)} / giờ`;
+  }
+  return `${formatMoney(emp.baseSalary)} / tháng`;
+}
 
 export const EmployeesPage: React.FC = () => {
   const storeId = useStoreStore((s) => s.store?.id);
@@ -29,11 +34,7 @@ export const EmployeesPage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col relative h-full">
       {isLoading && <LoadingOverlay />}
-      <Header
-        title="Quản lý nhân viên"
-        Icon={Users}
-        backUrl={paths.settings.index}
-      >
+      <Header title="Quản lý nhân viên" Icon={Users} backUrl={paths.settings.index}>
         <Link to={paths.employees.create} className="text-(--color-primary)">
           <CirclePlus size={24} />
         </Link>
@@ -50,11 +51,8 @@ export const EmployeesPage: React.FC = () => {
             )}
             {employees.length > 0 && (
               <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
-                {employees.map((emp: any) => (
-                  <div
-                    key={emp.id}
-                    className="px-4 py-3 flex justify-between items-center gap-4"
-                  >
+                {employees.map((emp: Employee) => (
+                  <div key={emp.id} className="px-4 py-3 flex justify-between items-center gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2">
                         <span className="font-semibold text-(--color-text-main) text-sm truncate">
@@ -64,16 +62,16 @@ export const EmployeesPage: React.FC = () => {
                           {emp.user.phone}
                         </span>
                       </div>
-                      
-                      {/* Roles Badges */}
+
+                      {/* Roles */}
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {emp.roles && emp.roles.length > 0 ? (
-                          emp.roles.map((er: any) => (
+                          emp.roles.map((er) => (
                             <span
                               key={er.storeRole.id}
                               className={cn(
                                 "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border transition-all",
-                                "bg-blue-50 text-blue-700 border-blue-200"
+                                "bg-blue-50 text-blue-700 border-blue-200",
                               )}
                             >
                               {er.storeRole.name}
@@ -85,13 +83,27 @@ export const EmployeesPage: React.FC = () => {
                           </span>
                         )}
                       </div>
+
+                      {/* Salary */}
+                      <p className="text-xs text-(--color-text-secondary) mt-1">
+                        {salaryLabel(emp)}
+                      </p>
                     </div>
 
-                    <div className="flex items-center gap-4 flex-none">
+                    <div className="flex items-center gap-3 flex-none">
+                      <Link
+                        to={paths.employees.salary(emp.id)}
+                        state={{ employee: emp }}
+                        className="text-(--color-primary)"
+                        aria-label="Cài đặt lương"
+                      >
+                        <Wallet size={20} />
+                      </Link>
                       <Link
                         to={paths.employees.edit(emp.id)}
                         state={{ employee: emp }}
                         className="text-(--color-warning)"
+                        aria-label="Sửa vai trò"
                       >
                         <Pencil size={20} />
                       </Link>

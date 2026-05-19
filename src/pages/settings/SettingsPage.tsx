@@ -10,6 +10,13 @@ import {
   LogOut,
   Users,
   ShieldAlert,
+  CalendarCheck2,
+  CalendarRange,
+  Palmtree,
+  QrCode,
+  Scan,
+  HandCoins,
+  Info,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { paths } from '@/config/paths';
@@ -118,6 +125,90 @@ export const SettingsPage: React.FC = () => {
                   <span className="text-sm text-(--color-text-main) font-medium">
                     Nhân viên
                   </span>
+                </div>
+                <ChevronRight size={20} className="text-(--color-text-placeholder)" />
+              </Link>
+            </div>
+
+            <div className="flex items-center justify-between px-4 pt-4 pb-2">
+              <h3 className="font-semibold text-(--color-text-secondary)">Chấm công & lương</h3>
+              <Link
+                to={paths.settings.hrGuide}
+                className="text-(--color-primary) p-1 -mr-1"
+                aria-label="Hướng dẫn chấm công và lương"
+              >
+                <Info size={20} />
+              </Link>
+            </div>
+
+            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-gray-200">
+              <Link
+                to={paths.attendance.index}
+                className="w-full px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <CalendarCheck2 className="text-teal-600" size={20} />
+                  <span className="text-sm text-(--color-text-main) font-medium">Chấm công</span>
+                </div>
+                <ChevronRight size={20} className="text-(--color-text-placeholder)" />
+              </Link>
+              <Link
+                to={paths.schedule.index}
+                className="w-full px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <CalendarRange className="text-cyan-600" size={20} />
+                  <span className="text-sm text-(--color-text-main) font-medium">Lịch làm việc</span>
+                </div>
+                <ChevronRight size={20} className="text-(--color-text-placeholder)" />
+              </Link>
+              <Link
+                to={paths.leave.index}
+                className="w-full px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <Palmtree className="text-green-600" size={20} />
+                  <span className="text-sm text-(--color-text-main) font-medium">Đơn nghỉ</span>
+                </div>
+                <ChevronRight size={20} className="text-(--color-text-placeholder)" />
+              </Link>
+              <Link
+                to={paths.leave.request}
+                className="w-full px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <Palmtree className="text-lime-600" size={20} />
+                  <span className="text-sm text-(--color-text-main) font-medium">Xin nghỉ</span>
+                </div>
+                <ChevronRight size={20} className="text-(--color-text-placeholder)" />
+              </Link>
+              <Link
+                to={paths.payroll.index}
+                className="w-full px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <HandCoins className="text-amber-600" size={20} />
+                  <span className="text-sm text-(--color-text-main) font-medium">Bảng lương</span>
+                </div>
+                <ChevronRight size={20} className="text-(--color-text-placeholder)" />
+              </Link>
+              <Link
+                to={paths.attendance.kiosk}
+                className="w-full px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <QrCode className="text-sky-600" size={20} />
+                  <span className="text-sm text-(--color-text-main) font-medium">Màn hình QR</span>
+                </div>
+                <ChevronRight size={20} className="text-(--color-text-placeholder)" />
+              </Link>
+              <Link
+                to={paths.attendance.scan}
+                className="w-full px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <Scan className="text-violet-600" size={20} />
+                  <span className="text-sm text-(--color-text-main) font-medium">Quét QR chấm công</span>
                 </div>
                 <ChevronRight size={20} className="text-(--color-text-placeholder)" />
               </Link>

@@ -100,3 +100,27 @@ src/
 
 ---
 **Orderly POS Frontend** — Giao diện Tinh gọn, Phản hồi Siêu tốc, Tương thích Đa nền tảng.
+
+Seed đã chạy **thành công** (exit code 0). Lỗi `dim is not defined` đã được xử lý; dữ liệu demo HRM đã được nạp đầy đủ.
+
+### Đăng nhập để test
+- **Admin / chủ cửa hàng 1 (Coffee)**: `0901234567` — `password123`
+- **Chủ cửa hàng 2 (Bon Bon, dashboard chủ)**: `0903456789` — `password123`
+- **Nhân viên Coffee**: `0902345678` … `0902345683` — `password123`
+- **Nhân viên Bon Bon**: `0903456790`, `0903456791` — `password123`
+
+### CH1 — Orderly Coffee (dùng test đầy đủ kịch bản)
+- **Lịch**: T2–T7, **một chủ nhật** có ca bù (nếu logic có), **một thứ 4 đầu tháng** → `OFF`.
+- **Chấm công**: nhiều ngày/dạng (giờ, trạng thái khác nhau).
+- **Đơn nghỉ**: **PENDING**, **REJECTED**, **APPROVED** (duyệt trùng với **nghỉ có lương** cho NV giờ).
+- **Lương**: **tháng trước đã khóa** — trên UI chọn tháng đó và test **“Mở khóa”**.
+
+### CH2 — Bon Bon
+- Dữ liệu **tối thiểu** (lịch, chấm công, ít đơn nghỉ) để so sánh với store “giàu”.
+
+Nếu bạn muốn thêm case cụ thể (ví dụ chỉnh `AttendanceEditLog`, thêm snapshot tháng hiện tại, v.v.), nói rõ scenario để bổ sung trong `seed.ts`.
+
+cả phần backend cũng như vậy, tái sử dụng những gì đã có không hard code, luôn đặt biến hằng số enum,... tách hàm, code dễ đọc dễ bảo trì, có chú tích rõ rang những ngắn gọn
+tận dụng được những component đã có sẵn và hàm tiện tích đã có sẵn
+phong cách phải đồng bộ với phong cách hiện tại của trang, phẳng tràn viền, không bo góc, không đổ bóng
+ui ux phải phù hợp với giao diện phong cách của fe hiện tại là thiết kế chỉ cho điện thoại, không dùng trên máy tính, với phong cách phẳng và tràn viền để tối ưu không gian hiển thị, không nên có quá nhiều nút và form trong 1 màn hình, hãy tách nhỏ ra ra nhiều trang như hiện tại app đang code, mỗi trang 1  forrm 1 chức năng, để người dùng tập trung không bị loạn, làm xong bước 1 để trang 2 bước 2 làm tiếp, không dùng dailog hiển thị form để nhập, thêm chỉnh sửa luôn tạo 1 trang mới

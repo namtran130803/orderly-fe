@@ -19,8 +19,10 @@ import { ExpensesPage } from "./pages/expenses/ExpensesPage";
 import { paths } from "./config/paths";
 import { ExpensesFormPage } from "./pages/expenses/ExpensesFormPage";
 import { SettingsPage } from "./pages/settings/SettingsPage";
+import { HrGuidePage } from "./pages/settings/HrGuidePage";
 import { EmployeesPage } from "./pages/employees/EmployeesPage";
 import { EmployeeFormPage } from "./pages/employees/EmployeeFormPage";
+import { EmployeeSalaryPage } from "./pages/employees/EmployeeSalaryPage";
 import { RolesPage } from "./pages/roles/RolesPage";
 import { RolesFormPage } from "./pages/roles/RolesFormPage";
 import { StoresPage } from "./pages/stores/StoresPage";
@@ -40,6 +42,19 @@ import { OrdersPage } from "./pages/orders/OrdersPage";
 import { SelectTablePage } from "./pages/orders/SelectTablePage";
 import { SelectMenuPage } from "./pages/orders/SelectMenuPage";
 import { OrderFormPage } from "./pages/orders/OrderFormPage";
+import { AttendanceHubPage } from "./pages/attendance/AttendanceHubPage";
+import { AttendanceEmployeePage } from "./pages/attendance/AttendanceEmployeePage";
+import { AttendanceEditPage } from "./pages/attendance/AttendanceEditPage";
+import { AttendanceCreatePage } from "./pages/attendance/AttendanceCreatePage";
+import { AttendanceKioskPage } from "./pages/attendance/AttendanceKioskPage";
+import { AttendanceScanPage } from "./pages/attendance/AttendanceScanPage";
+import { SchedulePage } from "./pages/schedule/SchedulePage";
+import { ScheduleOverrideFormPage } from "./pages/schedule/ScheduleOverrideFormPage";
+import { LeaveListPage } from "./pages/leave/LeaveListPage";
+import { LeaveDetailPage } from "./pages/leave/LeaveDetailPage";
+import { LeaveRequestPage } from "./pages/leave/LeaveRequestPage";
+import { PayrollPage } from "./pages/payroll/PayrollPage";
+import { PayrollEmployeeDetailPage } from "./pages/payroll/PayrollEmployeeDetailPage";
 
 const router = createBrowserRouter([
   {
@@ -93,6 +108,10 @@ const router = createBrowserRouter([
                     path: paths.settings.index,
                     element: <SettingsPage />
                   },
+                  {
+                    path: paths.settings.hrGuide,
+                    element: <HrGuidePage />
+                  },
                   // Employees
                   {
                     path: paths.employees.index,
@@ -105,6 +124,10 @@ const router = createBrowserRouter([
                   {
                     path: paths.employees.edit(":id"),
                     element: <EmployeeFormPage type="edit" />
+                  },
+                  {
+                    path: paths.employees.salary(":id"),
+                    element: <EmployeeSalaryPage />
                   },
                   // Roles
                   {
@@ -204,7 +227,59 @@ const router = createBrowserRouter([
                     path: paths.orders.summary,
                     element: <OrderFormPage />
                   },
+                  {
+                    path: paths.attendance.index,
+                    element: <AttendanceHubPage />
+                  },
+                  {
+                    path: '/attendance/employees/:employeeId',
+                    element: <AttendanceEmployeePage />
+                  },
+                  {
+                    path: '/attendance/records/:attendanceId/edit',
+                    element: <AttendanceEditPage />
+                  },
+                  {
+                    path: paths.attendance.createRecord,
+                    element: <AttendanceCreatePage />
+                  },
+                  {
+                    path: paths.schedule.index,
+                    element: <SchedulePage />
+                  },
+                  {
+                    path: paths.schedule.overrideCreate,
+                    element: <ScheduleOverrideFormPage />
+                  },
+                  {
+                    path: paths.leave.index,
+                    element: <LeaveListPage />
+                  },
+                  {
+                    path: paths.leave.request,
+                    element: <LeaveRequestPage />
+                  },
+                  {
+                    path: '/leave/:leaveId',
+                    element: <LeaveDetailPage />
+                  },
+                  {
+                    path: paths.payroll.index,
+                    element: <PayrollPage />
+                  },
+                  {
+                    path: paths.payroll.employeeDetail(':employeeId'),
+                    element: <PayrollEmployeeDetailPage />
+                  },
+                  {
+                    path: paths.attendance.scan,
+                    element: <AttendanceScanPage />
+                  },
                 ]
+              },
+              {
+                path: paths.attendance.kiosk,
+                element: <AttendanceKioskPage />,
               },
             ],
           },

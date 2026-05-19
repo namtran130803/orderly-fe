@@ -1,0 +1,385 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Scan, Camera } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import jsQR from 'jsqr';
+
+import { Header } from '@/components/Header';
+import { LoadingOverlay } from '@/components/LoadingOverlay';
+import { paths } from '@/config/paths';
+import { attendanceService } from '@/services/attendance.service';
+import { useStoreStore } from '@/stores/store.store';
+
+const SCAN_INTERVAL_MS = 220;
+const COOLDOWN_AFTER_MS = 2500;
+const BIND_RETRY_MS = 120;
+
+type BarcodeDetectorCtor = new (opts?: { formats?: string[] }) => {
+  detect: (source: HTMLVideoElement | ImageData) => Promise<{ rawValue: string }[]>;
+};
+
+function getBarcodeDetector(): BarcodeDetectorCtor | null {
+  if (typeof globalThis === 'undefined') return null;
+  const B = (globalThis as unknown as { BarcodeDetector?: BarcodeDetectorCtor }).BarcodeDetector;
+  return B ?? null;
+}
+
+async function playVideoStream(video: HTMLVideoElement): Promise<void> {
+  video.muted = true;
+  video.playsInline = true;
+
+  try {
+    await video.play();
+    return;
+  } catch {
+    /* iOS / một số Android cần chờ metadata */
+  }
+
+  await new Promise<void>((resolve) => {
+    const done = () => {
+      video.removeEventListener('loadedmetadata', onReady);
+      resolve();
+    };
+    const onReady = () => {
+      void video.play().finally(done);
+    };
+    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      onReady();
+    } else {
+      video.addEventListener('loadedmetadata', onReady, { once: true });
+    }
+  });
+}
+
+/** Nhân viên: quét QR — camera tự mở; gắn stream qua callback ref để tránh màn hình đen. */
+export const AttendanceScanPage: React.FC = () => {
+  const storeId = useStoreStore((s) => s.store?.id);
+  const [requesting, setRequesting] = useState(true);
+  const [streamActive, setStreamActive] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [camHint, setCamHint] = useState<string | null>(null);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const scanTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const bindRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const detectorRef = useRef<InstanceType<BarcodeDetectorCtor> | null>(null);
+  const lastPayload = useRef<string | null>(null);
+  const cooldownUntil = useRef(0);
+  const isPendingRef = useRef(false);
+  const startGenRef = useRef(0);
+  const videoPlayingRef = useRef(false);
+
+  const clearBindRetry = useCallback(() => {
+    if (bindRetryRef.current) {
+      clearTimeout(bindRetryRef.current);
+      bindRetryRef.current = null;
+    }
+  }, []);
+
+  const stopScanInterval = useCallback(() => {
+    if (scanTimerRef.current) {
+      clearInterval(scanTimerRef.current);
+      scanTimerRef.current = null;
+    }
+  }, []);
+
+  const releaseMedia = useCallback(() => {
+    clearBindRetry();
+    stopScanInterval();
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    const video = videoRef.current;
+    if (video) {
+      video.srcObject = null;
+      video.onloadedmetadata = null;
+    }
+    detectorRef.current = null;
+    setStreamActive(false);
+    setVideoPlaying(false);
+    videoPlayingRef.current = false;
+  }, [clearBindRetry, stopScanInterval]);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (qrToken: string) => attendanceService.scan(storeId!, qrToken.trim()),
+    onSuccess: () => {
+      toast.success('Chấm công thành công');
+      lastPayload.current = null;
+      cooldownUntil.current = Date.now() + COOLDOWN_AFTER_MS;
+    },
+    onError: (e: unknown) => {
+      const msg =
+        typeof e === 'object' &&
+        e !== null &&
+        'response' in e &&
+        typeof (e as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message === 'string'
+          ? (e as { response: { data: { error: { message: string } } } }).response.data.error.message
+          : undefined;
+      if (msg) toast.error(msg);
+    },
+  });
+
+  isPendingRef.current = isPending;
+
+  const tryDecodeFrame = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+    const now = Date.now();
+    if (now < cooldownUntil.current || isPendingRef.current) return;
+
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    if (w < 16 || h < 16) return;
+
+    try {
+      const Detector = getBarcodeDetector();
+      if (Detector && !detectorRef.current) {
+        detectorRef.current = new Detector({ formats: ['qr_code'] });
+      }
+      const detector = detectorRef.current;
+
+      if (detector) {
+        void detector.detect(video).then((codes) => {
+          if (codes.length > 0 && codes[0].rawValue) {
+            const raw = codes[0].rawValue.trim();
+            if (raw && raw !== lastPayload.current) {
+              lastPayload.current = raw;
+              mutate(raw);
+            }
+          }
+        });
+        return;
+      }
+
+      if (!canvasRef.current) canvasRef.current = document.createElement('canvas');
+      const canvas = canvasRef.current;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) return;
+      ctx.drawImage(video, 0, 0, w, h);
+      const imageData = ctx.getImageData(0, 0, w, h);
+      const result = jsQR(imageData.data, w, h, { inversionAttempts: 'attemptBoth' });
+      if (result?.data) {
+        const raw = result.data.trim();
+        if (raw && raw !== lastPayload.current) {
+          lastPayload.current = raw;
+          mutate(raw);
+        }
+      }
+    } catch {
+      /* bỏ qua khung lỗi */
+    }
+  }, [mutate]);
+
+  const tryDecodeRef = useRef(tryDecodeFrame);
+  tryDecodeRef.current = tryDecodeFrame;
+
+  const bindStreamToVideo = useCallback(
+    async (video: HTMLVideoElement, gen: number) => {
+      const stream = streamRef.current;
+      if (!stream || gen !== startGenRef.current) return;
+
+      try {
+        video.srcObject = stream;
+        await playVideoStream(video);
+        if (gen !== startGenRef.current) return;
+        setVideoPlaying(true);
+        videoPlayingRef.current = true;
+        setCamHint('Chĩa camera vào mã QR kiosk.');
+      } catch {
+        if (gen !== startGenRef.current) return;
+        setVideoPlaying(false);
+        setCamHint('Không phát được hình camera — Thử lại.');
+      }
+    },
+    [],
+  );
+
+  const scheduleBind = useCallback(
+    (video: HTMLVideoElement | null) => {
+      clearBindRetry();
+      if (!video || !streamRef.current) return;
+
+      const gen = startGenRef.current;
+      void bindStreamToVideo(video, gen);
+
+      bindRetryRef.current = setTimeout(() => {
+        if (!videoRef.current || !streamRef.current || videoPlayingRef.current) return;
+        void bindStreamToVideo(videoRef.current, gen);
+      }, BIND_RETRY_MS);
+    },
+    [bindStreamToVideo, clearBindRetry],
+  );
+
+  const onVideoRef = useCallback(
+    (node: HTMLVideoElement | null) => {
+      videoRef.current = node;
+      if (node && streamRef.current) {
+        scheduleBind(node);
+      }
+    },
+    [scheduleBind],
+  );
+
+  const startCamera = useCallback(async () => {
+    const gen = ++startGenRef.current;
+    setRequesting(true);
+    setCamHint(null);
+    setVideoPlaying(false);
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCamHint('Trình duyệt không hỗ trợ camera.');
+      toast.error('Không hỗ trợ camera');
+      setRequesting(false);
+      return;
+    }
+
+    releaseMedia();
+    startGenRef.current = gen;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+
+      if (gen !== startGenRef.current) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
+
+      streamRef.current = stream;
+      setStreamActive(true);
+
+      const video = videoRef.current;
+      if (video) {
+        scheduleBind(video);
+      }
+    } catch (e) {
+      if (gen !== startGenRef.current) return;
+      setStreamActive(false);
+      if (e instanceof DOMException) {
+        if (e.name === 'NotAllowedError' || e.name === 'SecurityError') {
+          setCamHint('Khóa thanh địa chỉ → Cho phép camera → Thử lại.');
+          toast.error('Cần quyền camera để quét QR');
+          setRequesting(false);
+          return;
+        }
+        if (e.name === 'NotFoundError') {
+          setCamHint('Không có camera.');
+          toast.error('Không có camera');
+          setRequesting(false);
+          return;
+        }
+      }
+      setCamHint('Lỗi camera — Thử lại.');
+      toast.error('Không mở được camera');
+    } finally {
+      if (gen === startGenRef.current) {
+        setRequesting(false);
+      }
+    }
+  }, [releaseMedia, scheduleBind]);
+
+  useEffect(() => {
+    if (!videoPlaying) {
+      stopScanInterval();
+      return;
+    }
+    scanTimerRef.current = setInterval(() => {
+      void tryDecodeRef.current();
+    }, SCAN_INTERVAL_MS);
+    return stopScanInterval;
+  }, [videoPlaying, stopScanInterval]);
+
+  useEffect(() => {
+    if (!storeId) return;
+    void startCamera();
+  }, [storeId, startCamera]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!streamRef.current || !videoPlaying) {
+        void startCamera();
+      }
+    };
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) void startCamera();
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('pageshow', onPageShow);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('pageshow', onPageShow);
+    };
+  }, [startCamera, videoPlaying]);
+
+  useEffect(() => {
+    return () => {
+      startGenRef.current += 1;
+      releaseMedia();
+    };
+  }, [releaseMedia]);
+
+  if (!storeId) return null;
+
+  const showRetry = !requesting && !streamActive;
+  const showVideo = streamActive;
+
+  return (
+    <div className="flex-1 flex flex-col relative h-full">
+      {isPending && <LoadingOverlay />}
+      <Header title="Chấm công" Icon={Scan} backUrl={paths.settings.index} />
+
+      <div className="flex-1 overflow-auto pb-6 mt-4 flex flex-col gap-4">
+        <div className="px-4">
+          <div className="flex items-center gap-2 font-semibold text-(--color-text-secondary) mb-2">
+            <Camera size={18} className="text-(--color-primary)" />
+            Quét mã
+          </div>
+
+          <div className="relative w-full aspect-[4/3] max-h-[min(52vh,360px)] bg-black border-y border-(--color-border-main) overflow-hidden">
+            <video
+              ref={onVideoRef}
+              className={`absolute inset-0 size-full object-cover ${showVideo ? 'opacity-100' : 'opacity-0'}`}
+              playsInline
+              muted
+              autoPlay
+            />
+            {requesting && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-(--color-bg-surface) px-4 text-center">
+                <p className="text-sm text-(--color-text-secondary)">Đang mở camera…</p>
+                <p className="text-xs text-(--color-text-muted)">Trình duyệt có thể hỏi quyền camera.</p>
+              </div>
+            )}
+            {showVideo && !videoPlaying && !requesting && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/80 px-4">
+                <p className="text-xs text-(--color-text-secondary) text-center">Đang khởi động hình…</p>
+              </div>
+            )}
+          </div>
+
+          {showRetry && (
+            <button
+              type="button"
+              onClick={() => void startCamera()}
+              className="mt-3 w-full py-3 px-4 bg-(--color-bg-surface) border border-(--color-border-main) text-(--color-primary) font-medium"
+            >
+              Thử lại
+            </button>
+          )}
+
+          {camHint && <p className="text-xs text-(--color-text-secondary) mt-2 leading-relaxed">{camHint}</p>}
+        </div>
+      </div>
+    </div>
+  );
+};
