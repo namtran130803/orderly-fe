@@ -33,7 +33,6 @@ export const paths = {
         index: '/employees',
         create: '/employees/create',
         edit: (id: string | number) => `/employees/${id}/edit`,
-        salary: (id: string | number) => `/employees/${id}/salary`,
     },
     roles: {
         index: '/roles',

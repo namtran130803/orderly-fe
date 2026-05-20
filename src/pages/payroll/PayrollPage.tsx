@@ -82,7 +82,7 @@ export const PayrollPage: React.FC = () => {
               <div className="text-[11px] text-(--color-text-secondary) mt-1">
                 Chuẩn {e.standardDays} · Trả lương {e.paidDays} ngày
               </div>
-                <div className="text-sm font-semibold text-(--color-primary) mt-1">
+                <div className="text-sm font-semibold text-(--color-success) mt-1">
                   {formatMoney(e.salary)}
                 </div>
               </div>
@@ -95,7 +95,7 @@ export const PayrollPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setDlg('lock')}
-            className="mt-6 w-full py-3 text-sm font-semibold border-y border-(--color-border-main) bg-(--color-bg-surface) text-(--color-primary)"
+            className="mt-6 w-full py-3 text-sm font-semibold border-y border-(--color-border-main) bg-(--color-bg-surface) text-(--color-danger)"
           >
             Khóa kỳ lương
           </button>
@@ -114,7 +114,7 @@ export const PayrollPage: React.FC = () => {
         isOpen={dlg === 'lock'}
         title="Khóa kỳ lương?"
         description="Sau khi khóa không sửa chấm công / duyệt nghỉ trong tháng này."
-        variant="warning"
+        variant="danger"
         onConfirm={() => {
           lock();
           setDlg(null);

@@ -241,7 +241,7 @@ export const SelectMenuPage: React.FC = () => {
                     {qty === 0 ? (
                       <button
                         onClick={() => handleCartChange(item, 1)}
-                        className="w-8 h-8 rounded-full flex items-center justify-center bg-(--color-bg-main) text-(--color-primary)"
+                        className="w-8 h-8 flex items-center justify-center bg-(--color-bg-main) text-(--color-primary)"
                       >
                         <Plus size={18} />
                       </button>
@@ -254,7 +254,7 @@ export const SelectMenuPage: React.FC = () => {
                               ?.minQty || 0)
                           }
                           onClick={() => handleCartChange(item, -1)}
-                          className="w-8 h-8 rounded-full bg-(--color-bg-main) flex items-center justify-center text-(--color-primary) disabled:opacity-30"
+                          className="w-8 h-8 bg-(--color-bg-main) flex items-center justify-center text-(--color-primary) disabled:opacity-30"
                         >
                           <Minus size={18} />
                         </button>
@@ -263,7 +263,7 @@ export const SelectMenuPage: React.FC = () => {
                         </span>
                         <button
                           onClick={() => handleCartChange(item, 1)}
-                          className="w-8 h-8 rounded-full bg-(--color-primary) text-(--color-bg-surface) flex items-center justify-center"
+                          className="w-8 h-8 bg-(--color-primary) text-(--color-bg-surface) flex items-center justify-center"
                         >
                           <Plus size={18} />
                         </button>

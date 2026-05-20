@@ -11,13 +11,7 @@ import { paths } from '@/config/paths';
 import { navigateBackOrTo } from '@/lib/browser-history';
 import { attendanceService } from '@/services/attendance.service';
 import { useStoreStore } from '@/stores/store.store';
-
-type FormVals = {
-  status: 'WORK' | 'PAID_LEAVE' | 'UNPAID_LEAVE';
-  checkIn: string;
-  checkOut: string;
-  note: string;
-};
+import { createAttendanceResolver, type CreateAttendanceDto } from '@/schemas/attendance.schema';
 
 export const AttendanceCreatePage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,7 +25,8 @@ export const AttendanceCreatePage: React.FC = () => {
     year: number;
   };
 
-  const { register, handleSubmit } = useForm<FormVals>({
+  const { register, handleSubmit, formState: { errors } } = useForm<CreateAttendanceDto>({
+    resolver: createAttendanceResolver,
     defaultValues: {
       status: 'WORK',
       checkIn: '',
@@ -55,7 +50,12 @@ export const AttendanceCreatePage: React.FC = () => {
     },
   });
 
-  const onSubmit = (vals: FormVals) => {
+  const onError = (errs: typeof errors) => {
+    const firstError = Object.values(errs).find((err) => err.message);
+    if (firstError?.message) toast.error(firstError.message);
+  };
+
+  const onSubmit = (vals: CreateAttendanceDto) => {
     if (!st?.employeeId || !st?.date) {
       toast.error('Thiếu thông tin');
       return;
@@ -95,7 +95,7 @@ export const AttendanceCreatePage: React.FC = () => {
 
       <form
         id="attendance-create-form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmit, onError)}
         className="flex-1 flex flex-col min-h-0 overflow-hidden"
       >
         <div className="flex-1 overflow-auto pb-6 mt-4 space-y-0">

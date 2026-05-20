@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Pencil, Users, CirclePlus, Wallet } from "lucide-react";
+import { Pencil, Users, CirclePlus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import { Header } from "@/components/Header";
@@ -92,18 +92,10 @@ export const EmployeesPage: React.FC = () => {
 
                     <div className="flex items-center gap-3 flex-none">
                       <Link
-                        to={paths.employees.salary(emp.id)}
-                        state={{ employee: emp }}
-                        className="text-(--color-primary)"
-                        aria-label="Cài đặt lương"
-                      >
-                        <Wallet size={20} />
-                      </Link>
-                      <Link
                         to={paths.employees.edit(emp.id)}
                         state={{ employee: emp }}
                         className="text-(--color-warning)"
-                        aria-label="Sửa vai trò"
+                        aria-label="Sửa nhân viên"
                       >
                         <Pencil size={20} />
                       </Link>

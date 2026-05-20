@@ -59,6 +59,7 @@
     opacity: 0.5;
   }
 
+  textarea,
   select,
   input {
     outline: none;

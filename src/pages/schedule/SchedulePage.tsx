@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { CalendarRange, CheckCircle, Trash2 } from 'lucide-react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { CalendarRange, CheckCircle, X, Trash2, Check } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { Header } from '@/components/Header';
-import { LoadingOverlay } from '@/components/LoadingOverlay';
-import { paths } from '@/config/paths';
-import { scheduleService } from '@/services/schedule.service';
-import { useStoreStore } from '@/stores/store.store';
-import { cn } from '@/lib/cn';
+import { Header } from "@/components/Header";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { paths } from "@/config/paths";
+import { scheduleService } from "@/services/schedule.service";
+import { useStoreStore } from "@/stores/store.store";
+import { cn } from "@/lib/cn";
 
 const DAYS: { iso: number; label: string }[] = [
-  { iso: 1, label: 'Hai' },
-  { iso: 2, label: 'Ba' },
-  { iso: 3, label: 'Tư' },
-  { iso: 4, label: 'Năm' },
-  { iso: 5, label: 'Sáu' },
-  { iso: 6, label: 'Bảy' },
-  { iso: 7, label: 'CN' },
+  { iso: 1, label: "Hai" },
+  { iso: 2, label: "Ba" },
+  { iso: 3, label: "Tư" },
+  { iso: 4, label: "Năm" },
+  { iso: 5, label: "Sáu" },
+  { iso: 6, label: "Bảy" },
+  { iso: 7, label: "CN" },
 ];
 
 export const SchedulePage: React.FC = () => {
@@ -25,7 +25,7 @@ export const SchedulePage: React.FC = () => {
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['schedule', storeId],
+    queryKey: ["schedule", storeId],
     queryFn: async () => {
       const res = await scheduleService.get(storeId!);
       return res.data.data as {
@@ -45,19 +45,21 @@ export const SchedulePage: React.FC = () => {
   const { mutate: save, isPending } = useMutation({
     mutationFn: () => scheduleService.putDefault(storeId!, selected),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['schedule'] });
+      qc.invalidateQueries({ queryKey: ["schedule"] });
     },
   });
 
   const { mutate: removeOv, isPending: removing } = useMutation({
     mutationFn: (overrideId: number) =>
       scheduleService.deleteOverride(storeId!, overrideId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['schedule'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["schedule"] }),
   });
 
   const toggle = (iso: number) => {
     setSelected((cur) =>
-      cur.includes(iso) ? cur.filter((x) => x !== iso) : [...cur, iso].sort((a, b) => a - b),
+      cur.includes(iso)
+        ? cur.filter((x) => x !== iso)
+        : [...cur, iso].sort((a, b) => a - b),
     );
   };
 
@@ -66,7 +68,11 @@ export const SchedulePage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col relative h-full">
       {(isLoading || pending) && <LoadingOverlay />}
-      <Header title="Lịch làm việc" Icon={CalendarRange} backUrl={paths.settings.index}>
+      <Header
+        title="Lịch làm việc"
+        Icon={CalendarRange}
+        backUrl={paths.settings.index}
+      >
         <button
           type="button"
           onClick={() => save()}
@@ -91,15 +97,14 @@ export const SchedulePage: React.FC = () => {
                 onClick={() => toggle(d.iso)}
                 className="w-full px-4 py-3 flex items-center justify-between"
               >
-                <span className="text-sm font-semibold text-(--color-text-main)">{d.label}</span>
-                <span
-                  className={cn(
-                    'text-xs font-semibold',
-                    on ? 'text-(--color-primary)' : 'text-(--color-text-muted)',
-                  )}
-                >
-                  {on ? 'Có' : 'Không'}
+                <span className="text-sm font-semibold text-(--color-text-main)">
+                  {d.label}
                 </span>
+                {on ? (
+                  <Check size={20} className="text-(--color-success)" />
+                ) : (
+                  <X size={20} className="text-(--color-danger)" />
+                )}
               </button>
             );
           })}
@@ -115,11 +120,14 @@ export const SchedulePage: React.FC = () => {
             </div>
           )}
           {data?.overrides?.map((o) => (
-            <div key={o.id} className="px-4 py-3 flex items-center justify-between gap-2">
+            <div
+              key={o.id}
+              className="px-4 py-3 flex items-center justify-between gap-2"
+            >
               <div className="min-w-0">
                 <div className="text-sm font-medium">{o.date}</div>
                 <div className="text-xs text-(--color-text-secondary)">
-                  {o.type === 'OFF' ? 'Nghỉ' : 'Làm bù'}
+                  {o.type === "OFF" ? "Nghỉ" : "Làm bù"}
                 </div>
               </div>
               <button
@@ -135,7 +143,7 @@ export const SchedulePage: React.FC = () => {
 
         <Link
           to={paths.schedule.overrideCreate}
-          className="block text-center text-sm font-semibold text-(--color-primary) py-4"
+          className="mt-6 block w-full py-3 text-sm font-semibold text-center border-y border-(--color-border-main) bg-(--color-bg-surface) text-(--color-primary)"
         >
           Thêm ngày đặc biệt
         </Link>

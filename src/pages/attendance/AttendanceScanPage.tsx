@@ -1,26 +1,29 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Scan, Camera } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import jsQR from 'jsqr';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Scan, Camera } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import jsQR from "jsqr";
 
-import { Header } from '@/components/Header';
-import { LoadingOverlay } from '@/components/LoadingOverlay';
-import { paths } from '@/config/paths';
-import { attendanceService } from '@/services/attendance.service';
-import { useStoreStore } from '@/stores/store.store';
+import { Header } from "@/components/Header";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { paths } from "@/config/paths";
+import { attendanceService } from "@/services/attendance.service";
+import { useStoreStore } from "@/stores/store.store";
 
 const SCAN_INTERVAL_MS = 220;
 const COOLDOWN_AFTER_MS = 2500;
 const BIND_RETRY_MS = 120;
 
 type BarcodeDetectorCtor = new (opts?: { formats?: string[] }) => {
-  detect: (source: HTMLVideoElement | ImageData) => Promise<{ rawValue: string }[]>;
+  detect: (
+    source: HTMLVideoElement | ImageData,
+  ) => Promise<{ rawValue: string }[]>;
 };
 
 function getBarcodeDetector(): BarcodeDetectorCtor | null {
-  if (typeof globalThis === 'undefined') return null;
-  const B = (globalThis as unknown as { BarcodeDetector?: BarcodeDetectorCtor }).BarcodeDetector;
+  if (typeof globalThis === "undefined") return null;
+  const B = (globalThis as unknown as { BarcodeDetector?: BarcodeDetectorCtor })
+    .BarcodeDetector;
   return B ?? null;
 }
 
@@ -37,7 +40,7 @@ async function playVideoStream(video: HTMLVideoElement): Promise<void> {
 
   await new Promise<void>((resolve) => {
     const done = () => {
-      video.removeEventListener('loadedmetadata', onReady);
+      video.removeEventListener("loadedmetadata", onReady);
       resolve();
     };
     const onReady = () => {
@@ -46,7 +49,7 @@ async function playVideoStream(video: HTMLVideoElement): Promise<void> {
     if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
       onReady();
     } else {
-      video.addEventListener('loadedmetadata', onReady, { once: true });
+      video.addEventListener("loadedmetadata", onReady, { once: true });
     }
   });
 }
@@ -102,19 +105,22 @@ export const AttendanceScanPage: React.FC = () => {
   }, [clearBindRetry, stopScanInterval]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (qrToken: string) => attendanceService.scan(storeId!, qrToken.trim()),
+    mutationFn: (qrToken: string) =>
+      attendanceService.scan(storeId!, qrToken.trim()),
     onSuccess: () => {
-      toast.success('Chấm công thành công');
+      toast.success("Chấm công thành công");
       lastPayload.current = null;
       cooldownUntil.current = Date.now() + COOLDOWN_AFTER_MS;
     },
     onError: (e: unknown) => {
       const msg =
-        typeof e === 'object' &&
+        typeof e === "object" &&
         e !== null &&
-        'response' in e &&
-        typeof (e as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message === 'string'
-          ? (e as { response: { data: { error: { message: string } } } }).response.data.error.message
+        "response" in e &&
+        typeof (e as { response?: { data?: { error?: { message?: string } } } })
+          .response?.data?.error?.message === "string"
+          ? (e as { response: { data: { error: { message: string } } } })
+              .response.data.error.message
           : undefined;
       if (msg) toast.error(msg);
     },
@@ -135,7 +141,7 @@ export const AttendanceScanPage: React.FC = () => {
     try {
       const Detector = getBarcodeDetector();
       if (Detector && !detectorRef.current) {
-        detectorRef.current = new Detector({ formats: ['qr_code'] });
+        detectorRef.current = new Detector({ formats: ["qr_code"] });
       }
       const detector = detectorRef.current;
 
@@ -152,15 +158,18 @@ export const AttendanceScanPage: React.FC = () => {
         return;
       }
 
-      if (!canvasRef.current) canvasRef.current = document.createElement('canvas');
+      if (!canvasRef.current)
+        canvasRef.current = document.createElement("canvas");
       const canvas = canvasRef.current;
       canvas.width = w;
       canvas.height = h;
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) return;
       ctx.drawImage(video, 0, 0, w, h);
       const imageData = ctx.getImageData(0, 0, w, h);
-      const result = jsQR(imageData.data, w, h, { inversionAttempts: 'attemptBoth' });
+      const result = jsQR(imageData.data, w, h, {
+        inversionAttempts: "attemptBoth",
+      });
       if (result?.data) {
         const raw = result.data.trim();
         if (raw && raw !== lastPayload.current) {
@@ -187,11 +196,11 @@ export const AttendanceScanPage: React.FC = () => {
         if (gen !== startGenRef.current) return;
         setVideoPlaying(true);
         videoPlayingRef.current = true;
-        setCamHint('Chĩa camera vào mã QR kiosk.');
+        setCamHint("Đưa mã QR vào khung hình để chấm công.");
       } catch {
         if (gen !== startGenRef.current) return;
         setVideoPlaying(false);
-        setCamHint('Không phát được hình camera — Thử lại.');
+        setCamHint("Không phát được hình camera — Thử lại.");
       }
     },
     [],
@@ -206,7 +215,8 @@ export const AttendanceScanPage: React.FC = () => {
       void bindStreamToVideo(video, gen);
 
       bindRetryRef.current = setTimeout(() => {
-        if (!videoRef.current || !streamRef.current || videoPlayingRef.current) return;
+        if (!videoRef.current || !streamRef.current || videoPlayingRef.current)
+          return;
         void bindStreamToVideo(videoRef.current, gen);
       }, BIND_RETRY_MS);
     },
@@ -230,8 +240,8 @@ export const AttendanceScanPage: React.FC = () => {
     setVideoPlaying(false);
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      setCamHint('Trình duyệt không hỗ trợ camera.');
-      toast.error('Không hỗ trợ camera');
+      setCamHint("Trình duyệt không hỗ trợ camera.");
+      toast.error("Không hỗ trợ camera");
       setRequesting(false);
       return;
     }
@@ -242,7 +252,7 @@ export const AttendanceScanPage: React.FC = () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: { ideal: 'environment' },
+          facingMode: { ideal: "environment" },
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
@@ -265,21 +275,21 @@ export const AttendanceScanPage: React.FC = () => {
       if (gen !== startGenRef.current) return;
       setStreamActive(false);
       if (e instanceof DOMException) {
-        if (e.name === 'NotAllowedError' || e.name === 'SecurityError') {
-          setCamHint('Khóa thanh địa chỉ → Cho phép camera → Thử lại.');
-          toast.error('Cần quyền camera để quét QR');
+        if (e.name === "NotAllowedError" || e.name === "SecurityError") {
+          setCamHint("Khóa thanh địa chỉ → Cho phép camera → Thử lại.");
+          toast.error("Cần quyền camera để quét QR");
           setRequesting(false);
           return;
         }
-        if (e.name === 'NotFoundError') {
-          setCamHint('Không có camera.');
-          toast.error('Không có camera');
+        if (e.name === "NotFoundError") {
+          setCamHint("Không có camera.");
+          toast.error("Không có camera");
           setRequesting(false);
           return;
         }
       }
-      setCamHint('Lỗi camera — Thử lại.');
-      toast.error('Không mở được camera');
+      setCamHint("Lỗi camera — Thử lại.");
+      toast.error("Không mở được camera");
     } finally {
       if (gen === startGenRef.current) {
         setRequesting(false);
@@ -305,7 +315,7 @@ export const AttendanceScanPage: React.FC = () => {
 
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState !== 'visible') return;
+      if (document.visibilityState !== "visible") return;
       if (!streamRef.current || !videoPlaying) {
         void startCamera();
       }
@@ -314,11 +324,11 @@ export const AttendanceScanPage: React.FC = () => {
       if (e.persisted) void startCamera();
     };
 
-    document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('pageshow', onPageShow);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("pageshow", onPageShow);
     return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('pageshow', onPageShow);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("pageshow", onPageShow);
     };
   }, [startCamera, videoPlaying]);
 
@@ -337,48 +347,86 @@ export const AttendanceScanPage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col relative h-full">
       {isPending && <LoadingOverlay />}
-      <Header title="Chấm công" Icon={Scan} backUrl={paths.settings.index} />
+      <Header
+        title="Quét QR chấm công"
+        Icon={Scan}
+        backUrl={paths.settings.index}
+      />
 
-      <div className="flex-1 overflow-auto pb-6 mt-4 flex flex-col gap-4">
-        <div className="px-4">
-          <div className="flex items-center gap-2 font-semibold text-(--color-text-secondary) mb-2">
-            <Camera size={18} className="text-(--color-primary)" />
-            Quét mã
+      <div className="flex-1 flex flex-col items-center px-4 pb-6 gap-5 justify-center">
+        <div className="relative w-full max-w-[300px] aspect-square bg-black overflow-hidden border border-(--color-border-main)">
+          {/* Dim overlay around scan area */}
+          <div className="absolute inset-0 z-10 pointer-events-none">
+            <div className="absolute top-[10%] left-[10%] size-10 border-t-[3px] border-l-[3px] border-(--color-primary)" />
+            <div className="absolute top-[10%] right-[10%] size-10 border-t-[3px] border-r-[3px] border-(--color-primary)" />
+            <div className="absolute bottom-[10%] left-[10%] size-10 border-b-[3px] border-l-[3px] border-(--color-primary)" />
+            <div className="absolute bottom-[10%] right-[10%] size-10 border-b-[3px] border-r-[3px] border-(--color-primary)" />
           </div>
 
-          <div className="relative w-full aspect-[4/3] max-h-[min(52vh,360px)] bg-black border-y border-(--color-border-main) overflow-hidden">
-            <video
-              ref={onVideoRef}
-              className={`absolute inset-0 size-full object-cover ${showVideo ? 'opacity-100' : 'opacity-0'}`}
-              playsInline
-              muted
-              autoPlay
-            />
-            {requesting && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-(--color-bg-surface) px-4 text-center">
-                <p className="text-sm text-(--color-text-secondary)">Đang mở camera…</p>
-                <p className="text-xs text-(--color-text-muted)">Trình duyệt có thể hỏi quyền camera.</p>
-              </div>
-            )}
-            {showVideo && !videoPlaying && !requesting && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/80 px-4">
-                <p className="text-xs text-(--color-text-secondary) text-center">Đang khởi động hình…</p>
-              </div>
-            )}
-          </div>
+          <video
+            ref={onVideoRef}
+            className={`absolute inset-0 size-full object-cover ${showVideo ? "opacity-100" : "opacity-0"}`}
+            playsInline
+            muted
+            autoPlay
+          />
 
-          {showRetry && (
-            <button
-              type="button"
-              onClick={() => void startCamera()}
-              className="mt-3 w-full py-3 px-4 bg-(--color-bg-surface) border border-(--color-border-main) text-(--color-primary) font-medium"
-            >
-              Thử lại
-            </button>
+          {requesting && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-(--color-bg-surface) px-4 text-center z-20">
+              <Camera size={40} className="text-(--color-text-muted)" />
+              <p className="text-sm text-(--color-text-secondary)">
+                Đang mở camera…
+              </p>
+              <p className="text-xs text-(--color-text-muted)">
+                Trình duyệt có thể hỏi quyền camera.
+              </p>
+            </div>
           )}
 
-          {camHint && <p className="text-xs text-(--color-text-secondary) mt-2 leading-relaxed">{camHint}</p>}
+          {showVideo && !videoPlaying && !requesting && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/80 px-4 z-20">
+              <p className="text-xs text-(--color-text-muted) text-center">
+                Đang khởi động hình…
+              </p>
+            </div>
+          )}
         </div>
+
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center gap-2 mb-2">
+            <p className="text-sm font-semibold text-(--color-text-main)">
+              Quét mã QR chấm công
+            </p>
+          </div>
+          {camHint ? (
+            <p className="text-xs text-(--color-text-secondary) leading-relaxed max-w-[260px] mx-auto">
+              {camHint}
+            </p>
+          ) : (
+            <p className="text-xs text-(--color-text-muted) leading-relaxed max-w-[260px] mx-auto">
+              Đưa mã QR vào khung hình để chấm công.
+            </p>
+          )}
+        </div>
+
+        {showRetry && (
+          <button
+            type="button"
+            onClick={() => void startCamera()}
+            className="w-full max-w-[300px] py-3 text-sm font-semibold bg-(--color-bg-surface) border-y border-(--color-border-main) text-(--color-primary)"
+          >
+            Thử lại
+          </button>
+        )}
+
+        {isPending && (
+          <div className="flex items-center gap-2 text-(--color-success)">
+            <div className="size-2 bg-(--color-success) animate-ping" />
+            <span className="text-sm font-semibold">
+              Đã nhận diện, đang chấm công…
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

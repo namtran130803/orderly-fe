@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { CalendarCheck2, ChevronRight } from 'lucide-react';
+import { CalendarCheck2, Pencil, CirclePlus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 import { Header } from '@/components/Header';
@@ -11,7 +11,7 @@ import { useStoreStore } from '@/stores/store.store';
 import { cn } from '@/lib/cn';
 
 const RUN_LABEL: Record<string, string> = {
-  OFF: 'Nghỉ cửa hàng',
+  OFF: 'Cửa hàng nghỉ',
   ABSENT: 'Vắng',
   WORK: 'Làm việc',
   PAID_LEAVE: 'Nghỉ có lương',
@@ -29,7 +29,7 @@ function runtimeClass(runtime: string) {
     case 'ABSENT':
       return 'text-(--color-danger)';
     default:
-      return 'text-(--color-text-muted)';
+      return 'text-(--color-text-secondary)';
   }
 }
 
@@ -86,9 +86,9 @@ export const AttendanceEmployeePage: React.FC = () => {
                       <Link
                         to={paths.attendance.editRecord(cell.record.id)}
                         state={{ cell, month, year }}
-                        className="text-(--color-primary)"
+                        className="text-(--color-warning)"
                       >
-                        <ChevronRight size={20} />
+                        <Pencil size={20} />
                       </Link>
                     ) : (
                       cell.runtime === 'ABSENT' && (
@@ -100,9 +100,9 @@ export const AttendanceEmployeePage: React.FC = () => {
                             month,
                             year,
                           }}
-                          className="text-xs font-semibold text-(--color-primary)"
+                          className="text-(--color-primary)"
                         >
-                          Thêm
+                          <CirclePlus size={20} />
                         </Link>
                       )
                     )}

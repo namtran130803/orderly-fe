@@ -1,28 +1,28 @@
-import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { CalendarCheck2, ChevronRight } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { CalendarCheck2, ChevronRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
-import { Header } from '@/components/Header';
-import { LoadingOverlay } from '@/components/LoadingOverlay';
-import { paths } from '@/config/paths';
-import { attendanceService } from '@/services/attendance.service';
-import { useStoreStore } from '@/stores/store.store';
+import { Header } from "@/components/Header";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { paths } from "@/config/paths";
+import { attendanceService } from "@/services/attendance.service";
+import { useStoreStore } from "@/stores/store.store";
 
 export const AttendanceHubPage: React.FC = () => {
   const storeId = useStoreStore((s) => s.store?.id);
   const [ym, setYm] = useState(() => {
     const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   });
 
   const [year, month] = useMemo(() => {
-    const [y, m] = ym.split('-').map(Number);
+    const [y, m] = ym.split("-").map(Number);
     return [y, m];
   }, [ym]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['attendance-list', storeId, month, year],
+    queryKey: ["attendance-list", storeId, month, year],
     queryFn: async () => {
       const res = await attendanceService.list(storeId!, { month, year });
       return res.data.data;
@@ -33,7 +33,11 @@ export const AttendanceHubPage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col relative h-full">
       {isLoading && <LoadingOverlay />}
-      <Header title="Chấm công" Icon={CalendarCheck2} backUrl={paths.settings.index} />
+      <Header
+        title="Danh sách chấm công"
+        Icon={CalendarCheck2}
+        backUrl={paths.settings.index}
+      />
 
       <div className="flex-1 relative mt-4">
         <div className="absolute inset-0 flex">

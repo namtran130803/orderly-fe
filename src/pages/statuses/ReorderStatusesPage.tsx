@@ -88,14 +88,14 @@ export const ReorderStatusesPage: React.FC = () => {
                     <button
                       disabled={index === 0}
                       onClick={() => handleMoveStatus(index, 'up')}
-                      className="p-2 rounded-full bg-(--color-bg-main) text-(--color-primary) disabled:opacity-40"
+                      className="p-2 bg-(--color-bg-main) text-(--color-primary) disabled:opacity-40"
                     >
                       <ArrowUp size={20} />
                     </button>
                     <button
                       disabled={index === reorderList.length - 1}
                       onClick={() => handleMoveStatus(index, 'down')}
-                      className="p-2 rounded-full bg-(--color-bg-main) text-(--color-primary) disabled:opacity-40"
+                      className="p-2 bg-(--color-bg-main) text-(--color-primary) disabled:opacity-40"
                     >
                       <ArrowDown size={20} />
                     </button>

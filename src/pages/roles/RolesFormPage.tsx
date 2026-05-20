@@ -174,7 +174,7 @@ export const RolesFormPage: React.FC<Props> = ({ type }) => {
                             el.indeterminate = isModuleSomeSelected;
                           }
                         }}
-                        className="rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer"
+                        className="rounded border-(--color-border-main) text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer"
                       />
                       <span className="text-[11px] font-bold text-(--color-text-secondary) select-none">
                         Tất cả
@@ -220,7 +220,7 @@ export const RolesFormPage: React.FC<Props> = ({ type }) => {
                                       onChange={() =>
                                         handleTogglePermission(perm.code)
                                       }
-                                      className="shrink-0 rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer"
+                                      className="shrink-0 rounded border-(--color-border-main) text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer"
                                     />
                                   </label>
                                 ) : null}

@@ -22,7 +22,6 @@ import { SettingsPage } from "./pages/settings/SettingsPage";
 import { HrGuidePage } from "./pages/settings/HrGuidePage";
 import { EmployeesPage } from "./pages/employees/EmployeesPage";
 import { EmployeeFormPage } from "./pages/employees/EmployeeFormPage";
-import { EmployeeSalaryPage } from "./pages/employees/EmployeeSalaryPage";
 import { RolesPage } from "./pages/roles/RolesPage";
 import { RolesFormPage } from "./pages/roles/RolesFormPage";
 import { StoresPage } from "./pages/stores/StoresPage";
@@ -124,10 +123,6 @@ const router = createBrowserRouter([
                   {
                     path: paths.employees.edit(":id"),
                     element: <EmployeeFormPage type="edit" />
-                  },
-                  {
-                    path: paths.employees.salary(":id"),
-                    element: <EmployeeSalaryPage />
                   },
                   // Roles
                   {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Users, CheckCircle, Loader2 } from "lucide-react";
+import { Users, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
@@ -12,7 +12,7 @@ import { navigateBackOrTo } from "@/lib/browser-history";
 import { employeeService } from "@/services/employee.service";
 import { storeRoleService } from "@/services/storeRole.service";
 import { useStoreStore } from "@/stores/store.store";
-import { createEmployeeResolver, type CreateEmployeeDto } from "@/schemas/employee.schema";
+import { createEmployeeResolver, updateSalaryResolver, type CreateEmployeeDto, type UpdateSalaryDto, type Employee } from "@/schemas/employee.schema";
 import { digitsFromMoneyInput, formatMoneyInputDisplay } from "@/utils/moneyInput";
 import { cn } from "@/lib/cn";
 
@@ -35,11 +35,11 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
   const location = useLocation();
   const queryClient = useQueryClient();
   const storeId = useStoreStore((s) => s.store?.id);
-  const employee = location.state?.employee;
+  const employee: Employee | undefined = location.state?.employee;
 
   const [updatingRoleId, setUpdatingRoleId] = useState<number | null>(null);
 
-  // Local UI state for salary inputs (controlled outside react-hook-form to support formatted display)
+  // Edit-mode salary local state
   const [salaryType, setSalaryType] = useState<"MONTHLY" | "HOURLY">("MONTHLY");
   const [amountDigits, setAmountDigits] = useState("");
   const [useStoreDays, setUseStoreDays] = useState(true);
@@ -50,6 +50,19 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
       navigate(paths.employees.index, { replace: true });
     }
   }, [type, employee, navigate]);
+
+  // Pre-fill salary fields from employee data in edit mode
+  useEffect(() => {
+    if (type === "edit" && employee) {
+      const st = employee.salaryType ?? "MONTHLY";
+      setSalaryType(st);
+      const amount = st === "HOURLY" ? (employee.hourlyRate ?? 0) : (employee.baseSalary ?? 0);
+      setAmountDigits(amount === 0 ? "" : String(amount));
+      const noCustomDays = !employee.workDays || employee.workDays.length === 0;
+      setUseStoreDays(noCustomDays);
+      setCustomDays(noCustomDays ? [] : employee.workDays);
+    }
+  }, [type, employee]);
 
   const { data: roles = [], isLoading: isLoadingRoles } = useQuery({
     queryKey: ["store-roles", storeId],
@@ -79,6 +92,18 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Lỗi khi thêm nhân viên");
+    },
+  });
+
+  const { mutate: updateSalary, isPending: isUpdatingSalary } = useMutation({
+    mutationFn: (dto: UpdateSalaryDto) =>
+      employeeService.updateSalary(storeId!, employee!.id, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employees", storeId] });
+      navigateBackOrTo(navigate, paths.employees.index);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Lỗi khi cập nhật lương");
     },
   });
 
@@ -174,8 +199,21 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
     setValue("workDays", storeDays ? [] : customDays);
   };
 
-  const onSubmit = (data: CreateEmployeeDto) => {
+  // Create mode submit
+  const onCreateSubmit = (data: CreateEmployeeDto) => {
     createEmployee(data);
+  };
+
+  // Edit mode submit (salary only)
+  const onEditSubmit = () => {
+    const amount = Number(amountDigits || "0");
+    const dto: UpdateSalaryDto = {
+      salaryType,
+      baseSalary: salaryType === "MONTHLY" ? amount : 0,
+      hourlyRate: salaryType === "HOURLY" ? amount : null,
+      workDays: useStoreDays ? [] : customDays,
+    };
+    updateSalary(dto);
   };
 
   const onError = (errs: typeof errors) => {
@@ -184,7 +222,7 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
   };
 
   const isLoading = isLoadingRoles || (type === "edit" && isLoadingEmpRoles);
-  const isPending = isCreating || updatingRoleId !== null;
+  const isPending = isCreating || isUpdatingSalary || updatingRoleId !== null;
 
   return (
     <div className="flex-1 flex flex-col relative h-full">
@@ -192,7 +230,7 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
       {isPending && <LoadingOverlay />}
 
       <Header
-        title={type === "create" ? "Thêm Nhân Viên" : "Vai Trò Nhân Viên"}
+        title={type === "create" ? "Thêm Nhân Viên" : "Sửa Nhân Viên"}
         Icon={Users}
         backUrl={paths.employees.index}
       >
@@ -207,8 +245,10 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
           </button>
         ) : (
           <button
-            onClick={() => navigateBackOrTo(navigate, paths.employees.index)}
-            className="text-(--color-primary)"
+            type="button"
+            onClick={onEditSubmit}
+            disabled={isPending}
+            className="text-(--color-primary) disabled:opacity-50"
           >
             <CheckCircle size={24} />
           </button>
@@ -218,7 +258,7 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
       {type === "create" ? (
         <form
           id="employee-form"
-          onSubmit={handleSubmit(onSubmit, onError)}
+          onSubmit={handleSubmit(onCreateSubmit, onError)}
           className="flex-1 flex flex-col min-h-0 overflow-hidden"
         >
           <div className="flex-1 overflow-auto pb-6">
@@ -327,7 +367,7 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
 
             {/* Roles */}
             <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Vai trò</h3>
-            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-gray-100 dark:divide-gray-800">
+            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
               {roles.length === 0 ? (
                 <div className="text-center py-4 text-(--color-text-secondary) italic text-xs">
                   Chưa có vai trò nào được tạo.
@@ -367,6 +407,7 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
       ) : (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <div className="flex-1 overflow-auto pb-6">
+            {/* Employee info */}
             <div className="mt-4 bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex flex-col gap-1">
               <span className="font-semibold text-(--color-text-main) text-sm truncate">
                 {employee?.user?.name}
@@ -376,8 +417,115 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
               </span>
             </div>
 
+            {/* Warning */}
+            <div className="mt-4 mx-4 flex items-start gap-2 text-xs text-(--color-text-secondary)">
+              <AlertTriangle size={14} className="mt-0.5 flex-none text-(--color-warning)" />
+              <span>Thay đổi này không ảnh hưởng bảng lương đã chốt.</span>
+            </div>
+
+            {/* Salary type */}
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Loại lương</h3>
+            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
+              {(["MONTHLY", "HOURLY"] as const).map((t) => (
+                <label key={t} className="flex items-center justify-between px-4 py-3 cursor-pointer">
+                  <span className="text-sm text-(--color-text-main)">
+                    {t === "MONTHLY" ? "Lương tháng" : "Lương giờ"}
+                  </span>
+                  <input
+                    type="radio"
+                    name="editSalaryType"
+                    checked={salaryType === t}
+                    onChange={() => handleSalaryTypeChange(t)}
+                    className="text-(--color-primary) size-4"
+                  />
+                </label>
+              ))}
+            </div>
+
+            {/* Amount */}
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">
+              {salaryType === "MONTHLY" ? "Lương tháng" : "Lương mỗi giờ"}
+            </h3>
+            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex items-center gap-4">
+              <span className="text-sm text-(--color-text-secondary) flex-none">₫</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={formatMoneyInputDisplay(amountDigits)}
+                onChange={(e) => setAmountDigits(digitsFromMoneyInput(e.target.value))}
+                placeholder="0"
+                className="flex-1 text-right text-sm"
+              />
+            </div>
+            <p className="px-4 pt-1 text-xs text-(--color-text-secondary)">
+              {salaryType === "MONTHLY"
+                ? "Lương đủ công trong 1 tháng"
+                : "Tiền nhận cho mỗi giờ làm việc"}
+            </p>
+
+            {/* Schedule */}
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Lịch làm việc</h3>
+            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
+              <label className="flex items-center justify-between px-4 py-3 cursor-pointer">
+                <span className="text-sm text-(--color-text-main)">Dùng lịch cửa hàng</span>
+                <input
+                  type="radio"
+                  name="editSchedule"
+                  checked={useStoreDays}
+                  onChange={() => {
+                    setUseStoreDays(true);
+                    setCustomDays([]);
+                  }}
+                  className="text-(--color-primary) size-4"
+                />
+              </label>
+              <label className="flex items-center justify-between px-4 py-3 cursor-pointer">
+                <span className="text-sm text-(--color-text-main)">Lịch riêng</span>
+                <input
+                  type="radio"
+                  name="editSchedule"
+                  checked={!useStoreDays}
+                  onChange={() => setUseStoreDays(false)}
+                  className="text-(--color-primary) size-4"
+                />
+              </label>
+            </div>
+
+            {!useStoreDays && (
+              <>
+                <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Ngày làm</h3>
+                <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex flex-wrap gap-2">
+                  {DAY_LABELS.map(({ value, label }) => {
+                    const checked = customDays.includes(value);
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => {
+                          setCustomDays((prev) =>
+                            prev.includes(value)
+                              ? prev.filter((d) => d !== value)
+                              : [...prev, value].sort((a, b) => a - b),
+                          );
+                        }}
+                        className={cn(
+                          "px-3 py-1.5 text-xs font-semibold border transition-colors",
+                          checked
+                            ? "bg-(--color-primary) text-white border-(--color-primary)"
+                            : "bg-(--color-bg-main) text-(--color-text-secondary) border-(--color-border-main)",
+                        )}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {/* Roles */}
             <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Vai trò</h3>
-            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-gray-100 dark:divide-gray-800">
+            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
               {roles.length === 0 ? (
                 <div className="text-center py-4 text-(--color-text-secondary) italic text-xs">
                   Chưa có vai trò nào được tạo.
