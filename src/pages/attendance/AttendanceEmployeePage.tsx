@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { CalendarCheck2, Pencil, CirclePlus, Scan } from "lucide-react";
+import { CalendarCheck2, Pencil, CirclePlus, Scan, LogIn, LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import { Header } from "@/components/Header";
@@ -13,6 +13,7 @@ import { PERMS } from "@/config/perms";
 import { cn } from "@/lib/cn";
 import { formatMonthYear } from "@/utils/payrollDetail";
 import { parseAttendanceDay, runtimeColorClass } from "@/utils/attendance";
+import { formatVnTime, todayVnDateString } from "@/lib/date-vn";
 
 const RUN_LABEL: Record<string, string> = {
   OFF: "Cửa hàng nghỉ",
@@ -27,7 +28,8 @@ export const AttendanceEmployeePage: React.FC = () => {
   const { employeeId: employeeIdParam } = useParams();
   const [search] = useSearchParams();
 
-  const now = new Date();
+  const todayStr = todayVnDateString();
+  const [todayY, todayM] = todayStr.split('-').map(Number);
   const monthFromQ = Number(search.get("month"));
   const yearFromQ = Number(search.get("year"));
 
@@ -37,7 +39,7 @@ export const AttendanceEmployeePage: React.FC = () => {
     if (monthFromQ >= 1 && monthFromQ <= 12 && yearFromQ >= 2000) {
       return `${yearFromQ}-${String(monthFromQ).padStart(2, "0")}`;
     }
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return `${todayY}-${String(todayM).padStart(2, "0")}`;
   });
   const [year, month] = ym.split("-").map(Number);
 
@@ -118,14 +120,35 @@ export const AttendanceEmployeePage: React.FC = () => {
                             {day}
                           </div>
                         </div>
+                        <div className="flex-1 min-w-0">
                         <p className={cn("text-sm font-medium", color)}>
                           {RUN_LABEL[cell.runtime] ?? cell.runtime}
                         </p>
+                        {cell.runtime === "WORK" && cell.record?.checkIn && (
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="flex items-center gap-1 text-xs text-(--color-text-secondary)">
+                              <LogIn size={12} />
+                              {formatVnTime(cell.record.checkIn)}
+                            </span>
+                            {cell.record?.checkOut && (
+                              <span className="flex items-center gap-1 text-xs text-(--color-text-secondary)">
+                                <LogOut size={12} />
+                                {formatVnTime(cell.record.checkOut)}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                       </div>
                       {cell.record && canEdit ? (
                         <Link
                           to={paths.attendance.editRecord(cell.record.id)}
-                          state={{ cell, month, year }}
+                          state={{
+                            cell,
+                            month,
+                            year,
+                            employeeId: emp.employeeId,
+                          }}
                           className="text-(--color-warning)"
                         >
                           <Pencil size={20} />

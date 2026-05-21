@@ -28,6 +28,7 @@ import {
 import { payrollService } from "@/services/payroll.service";
 import { useStoreStore } from "@/stores/store.store";
 import { cn } from "@/lib/cn";
+import { todayVnDateString } from "@/lib/date-vn";
 
 type LocationState = {
   month?: number;
@@ -68,7 +69,8 @@ export const PayrollEmployeeDetailPage: React.FC = () => {
   const storeId = useStoreStore((s) => s.store?.id);
   const state = (location.state ?? {}) as LocationState;
 
-  const now = new Date();
+  const todayStr = todayVnDateString();
+  const [todayY, todayM] = todayStr.split('-').map(Number);
   const monthFromQuery = Number(searchParams.get("month"));
   const yearFromQuery = Number(searchParams.get("year"));
 
@@ -79,7 +81,7 @@ export const PayrollEmployeeDetailPage: React.FC = () => {
     if (monthFromQuery >= 1 && monthFromQuery <= 12 && yearFromQuery >= 2000) {
       return `${yearFromQuery}-${String(monthFromQuery).padStart(2, "0")}`;
     }
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return `${todayY}-${String(todayM).padStart(2, "0")}`;
   });
   const [year, month] = ym.split("-").map(Number);
 

@@ -11,6 +11,7 @@ import { scheduleService } from "@/services/schedule.service";
 import { useStoreStore } from "@/stores/store.store";
 import { usePerm } from "@/hooks/usePerm";
 import { cn } from "@/lib/cn";
+import { formatDateShort } from "@/utils/payrollDetail";
 
 const DAYS: { iso: number; label: string }[] = [
   { iso: 1, label: "Hai" },
@@ -148,7 +149,7 @@ export const SchedulePage: React.FC = () => {
             >
               <div className="min-w-0">
                 <div className="text-sm font-medium text-(--color-text-main)">
-                  {o.date}
+                  {formatDateShort(o.date)}
                 </div>
                 <span
                   className={cn(

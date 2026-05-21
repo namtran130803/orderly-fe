@@ -15,7 +15,7 @@ export const AttendanceKioskPage: React.FC = () => {
   const navigate = useNavigate();
   const [secLeft, setSecLeft] = useState(60);
 
-  const { data, isLoading, dataUpdatedAt } = useQuery({
+  const { data, isLoading, dataUpdatedAt, refetch } = useQuery({
     queryKey: ["qr-token", storeId],
     queryFn: async () => {
       const res = await attendanceService.qrToken(storeId!);
@@ -24,6 +24,13 @@ export const AttendanceKioskPage: React.FC = () => {
     enabled: !!storeId,
     refetchInterval: 55_000,
   });
+
+  // Khi countdown về 0, gọi lại API lấy QR mới
+  useEffect(() => {
+    if (secLeft === 0) {
+      void refetch();
+    }
+  }, [secLeft, refetch]);
 
   useEffect(() => {
     if (!data?.expiresInSec) return;

@@ -12,6 +12,7 @@ import { expenseService } from '@/services/expense.service';
 import { useStoreStore } from '@/stores/store.store';
 import { createExpenseResolver, type CreateExpenseDto } from '@/schemas/expense.schema';
 import { digitsFromMoneyInput, formatMoneyInputDisplay } from '@/utils/moneyInput';
+import { todayVnDateString } from '@/lib/date-vn';
 
 type Props = {
   type: 'create' | 'edit'
@@ -54,7 +55,7 @@ export const ExpensesFormPage: React.FC<Props> = ({ type }) => {
       amount: expense?.amount || 0,
       rawDate: expense
         ? expense.rawDate.split('T')[0]
-        : new Date().toISOString().split('T')[0],
+        : todayVnDateString(),
     },
   });
 

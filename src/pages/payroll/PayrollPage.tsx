@@ -13,6 +13,7 @@ import { useStoreStore } from "@/stores/store.store";
 import { usePerm } from "@/hooks/usePerm";
 import { PERMS } from "@/config/perms";
 import { useAuthStore } from "@/stores/auth.store";
+import { todayVnDateString } from "@/lib/date-vn";
 
 export const PayrollPage: React.FC = () => {
   const storeId = useStoreStore((s) => s.store?.id);
@@ -31,9 +32,10 @@ export const PayrollPage: React.FC = () => {
 
   const [dlg, setDlg] = useState<"lock" | "unlock" | null>(null);
 
-  const now = new Date();
+  const todayStr = todayVnDateString();
+  const [todayY, todayM] = todayStr.split('-').map(Number);
   const [ym, setYm] = useState(
-    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
+    `${todayY}-${String(todayM).padStart(2, "0")}`,
   );
   const [y, m] = ym.split("-").map(Number);
 

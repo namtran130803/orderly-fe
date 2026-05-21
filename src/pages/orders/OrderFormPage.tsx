@@ -10,6 +10,7 @@ import { formatMoney } from "@/utils/formatMoney";
 import { groupItems } from "@/utils/groupItems";
 import { formatId } from "@/utils/format";
 import { useStoreStore } from "@/stores/store.store";
+import { todayVnDateString } from "@/lib/date-vn";
 import { useOrderStore } from "@/stores/order.store";
 
 type GroupedItem = {
@@ -143,8 +144,8 @@ export const OrderFormPage: React.FC = () => {
   const totalPortionCount = oldPortionCount + newPortionCount;
 
   const createdAt = orderDetail?.createdAt
-    ? new Date(orderDetail.createdAt).toLocaleString("vi-VN")
-    : new Date().toLocaleString("vi-VN");
+    ? new Date(orderDetail.createdAt).toLocaleString("vi-VN", { timeZone: 'Asia/Ho_Chi_Minh' })
+    : new Date().toLocaleString("vi-VN", { timeZone: 'Asia/Ho_Chi_Minh' });
 
   return (
     <div className="flex-1 flex flex-col relative">

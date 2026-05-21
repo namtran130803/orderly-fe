@@ -31,4 +31,7 @@ export const attendanceService = {
 
   patch: (storeId: number, attendanceId: number, data: unknown) =>
     api.patch(`/stores/${storeId}/attendance/${attendanceId}`, data),
+
+  getById: (storeId: number, attendanceId: number) =>
+    api.get(`/stores/${storeId}/attendance/${attendanceId}`),
 };

@@ -18,6 +18,7 @@ import {
   summarizeAttendanceCells,
   type AttendanceCell,
 } from "@/utils/attendance";
+import { todayVnDateString } from "@/lib/date-vn";
 
 export const AttendanceHubPage: React.FC = () => {
   const storeId = useStoreStore((s) => s.store?.id);
@@ -26,9 +27,10 @@ export const AttendanceHubPage: React.FC = () => {
 
   const canList = usePerm(PERMS.attendance.list);
 
-  const now = new Date();
+  const todayStr = todayVnDateString();
+  const [todayY, todayM] = todayStr.split('-').map(Number);
   const [ym, setYm] = useState(
-    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
+    `${todayY}-${String(todayM).padStart(2, "0")}`,
   );
   const [year, month] = ym.split("-").map(Number);
 

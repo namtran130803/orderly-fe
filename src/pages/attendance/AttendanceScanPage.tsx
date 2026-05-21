@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Scan, Camera } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { Scan, Camera, CheckCircle2 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import jsQR from "jsqr";
 
@@ -11,7 +11,6 @@ import { attendanceService } from "@/services/attendance.service";
 import { useStoreStore } from "@/stores/store.store";
 
 const SCAN_INTERVAL_MS = 220;
-const COOLDOWN_AFTER_MS = 2500;
 const BIND_RETRY_MS = 120;
 
 type BarcodeDetectorCtor = new (opts?: { formats?: string[] }) => {
@@ -55,12 +54,23 @@ async function playVideoStream(video: HTMLVideoElement): Promise<void> {
 }
 
 /** Nhân viên: quét QR — camera tự mở; gắn stream qua callback ref để tránh màn hình đen. */
+type ScanSuccessType = "checkIn" | "checkOut" | null;
+
+interface AttendanceRecord {
+  id: number;
+  checkIn: string | null;
+  checkOut: string | null;
+  workMinutes: number | null;
+}
+
 export const AttendanceScanPage: React.FC = () => {
   const storeId = useStoreStore((s) => s.store?.id);
+  const queryClient = useQueryClient();
   const [requesting, setRequesting] = useState(true);
   const [streamActive, setStreamActive] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [camHint, setCamHint] = useState<string | null>(null);
+  const [scanSuccess, setScanSuccess] = useState<ScanSuccessType>(null);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -69,7 +79,6 @@ export const AttendanceScanPage: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const detectorRef = useRef<InstanceType<BarcodeDetectorCtor> | null>(null);
   const lastPayload = useRef<string | null>(null);
-  const cooldownUntil = useRef(0);
   const isPendingRef = useRef(false);
   const startGenRef = useRef(0);
   const videoPlayingRef = useRef(false);
@@ -107,10 +116,24 @@ export const AttendanceScanPage: React.FC = () => {
   const { mutate, isPending } = useMutation({
     mutationFn: (qrToken: string) =>
       attendanceService.scan(storeId!, qrToken.trim()),
-    onSuccess: () => {
-      toast.success("Chấm công thành công");
+    onSuccess: (response: { data: { data: AttendanceRecord } }) => {
+      const record: AttendanceRecord = response.data.data;
+
+      // Ra ca khi API trả về checkOut; vào ca khi chỉ có checkIn
+      const isCheckOut = record.checkOut != null;
+      const successType: ScanSuccessType = isCheckOut ? "checkOut" : "checkIn";
+
+      setScanSuccess(successType);
+      toast.success(isCheckOut ? "Chấm công ra về thành công" : "Chấm công vào làm thành công");
+
+      // Refresh danh sách chấm công
+      queryClient.invalidateQueries({ queryKey: ['attendance-list'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['attendance-employee'], exact: false });
+
+      // Stop camera on success
+      releaseMedia();
+
       lastPayload.current = null;
-      cooldownUntil.current = Date.now() + COOLDOWN_AFTER_MS;
     },
     onError: (e: unknown) => {
       const msg =
@@ -131,8 +154,7 @@ export const AttendanceScanPage: React.FC = () => {
   const tryDecodeFrame = useCallback(() => {
     const video = videoRef.current;
     if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
-    const now = Date.now();
-    if (now < cooldownUntil.current || isPendingRef.current) return;
+    if (isPendingRef.current) return;
 
     const w = video.videoWidth;
     const h = video.videoHeight;
@@ -339,14 +361,19 @@ export const AttendanceScanPage: React.FC = () => {
     };
   }, [releaseMedia]);
 
+  const handleResetScan = useCallback(() => {
+    setScanSuccess(null);
+    void startCamera();
+  }, [startCamera]);
+
   if (!storeId) return null;
 
-  const showRetry = !requesting && !streamActive;
-  const showVideo = streamActive;
+  const showRetry = !requesting && !streamActive && !scanSuccess;
+  const showVideo = streamActive && !scanSuccess;
 
   return (
     <div className="flex-1 flex flex-col relative h-full">
-      {isPending && <LoadingOverlay />}
+      {isPending && !scanSuccess && <LoadingOverlay />}
       <Header
         title="Quét QR chấm công"
         Icon={Scan}
@@ -390,15 +417,34 @@ export const AttendanceScanPage: React.FC = () => {
               </p>
             </div>
           )}
+
+          {/* Success Overlay - full size, không bo góc */}
+          {scanSuccess && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-green-600 z-30">
+              <CheckCircle2 size={80} className="text-white mb-4" />
+              <p className="text-xl font-bold text-white">
+                {scanSuccess === "checkIn" ? "Chấm công vào làm" : "Chấm công ra về"}
+              </p>
+              <p className="text-sm text-white/80 mt-2">
+                {scanSuccess === "checkIn" ? "Thành công" : "Hẹn gặp lại"}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="text-center">
           <div className="inline-flex items-center justify-center gap-2 mb-2">
             <p className="text-sm font-semibold text-(--color-text-main)">
-              Quét mã QR chấm công
+              {scanSuccess ? "Chấm công thành công" : "Quét mã QR chấm công"}
             </p>
           </div>
-          {camHint ? (
+          {scanSuccess ? (
+            <p className="text-xs text-(--color-text-secondary) leading-relaxed max-w-[260px] mx-auto">
+              {scanSuccess === "checkIn"
+                ? "Chúc bạn một ngày làm việc hiệu quả!"
+                : "Hẹn gặp lại bạn!"}
+            </p>
+          ) : camHint ? (
             <p className="text-xs text-(--color-text-secondary) leading-relaxed max-w-[260px] mx-auto">
               {camHint}
             </p>
@@ -419,7 +465,7 @@ export const AttendanceScanPage: React.FC = () => {
           </button>
         )}
 
-        {isPending && (
+        {isPending && !scanSuccess && (
           <div className="flex items-center gap-2 text-(--color-success)">
             <div className="size-2 bg-(--color-success) animate-ping" />
             <span className="text-sm font-semibold">

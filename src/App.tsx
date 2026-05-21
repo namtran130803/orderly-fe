@@ -43,8 +43,7 @@ import { SelectMenuPage } from "./pages/orders/SelectMenuPage";
 import { OrderFormPage } from "./pages/orders/OrderFormPage";
 import { AttendanceHubPage } from "./pages/attendance/AttendanceHubPage";
 import { AttendanceEmployeePage } from "./pages/attendance/AttendanceEmployeePage";
-import { AttendanceEditPage } from "./pages/attendance/AttendanceEditPage";
-import { AttendanceCreatePage } from "./pages/attendance/AttendanceCreatePage";
+import { AttendanceFormPage } from "./pages/attendance/AttendanceFormPage";
 import { AttendanceKioskPage } from "./pages/attendance/AttendanceKioskPage";
 import { AttendanceScanPage } from "./pages/attendance/AttendanceScanPage";
 import { SchedulePage } from "./pages/schedule/SchedulePage";
@@ -236,11 +235,11 @@ const router = createBrowserRouter([
                   },
                   {
                     path: '/attendance/records/:attendanceId/edit',
-                    element: <AttendanceEditPage />
+                    element: <AttendanceFormPage type="edit" />
                   },
                   {
                     path: paths.attendance.createRecord,
-                    element: <AttendanceCreatePage />
+                    element: <AttendanceFormPage type="create" />
                   },
                   {
                     path: paths.schedule.index,
