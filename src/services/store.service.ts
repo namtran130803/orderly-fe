@@ -21,4 +21,14 @@ export const storeService = {
 
   remove: (storeId: number) =>
     api.delete<{ success: true; data: null; message: string }>(`/stores/${storeId}`),
+
+  getModules: (storeId: number) =>
+    api.get<{ success: true; data: { code: string; name: string; apis: { code: string; name: string }[] }[]; message: string }>(
+      `/stores/${storeId}/modules`,
+    ),
+
+  getRolesMe: (storeId: number) =>
+    api.get<{ success: true; data: { id: number; name: string; permissions: string[] }[]; message: string }>(
+      `/stores/${storeId}/roles/me`,
+    ),
 };

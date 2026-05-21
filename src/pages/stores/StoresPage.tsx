@@ -6,16 +6,21 @@ import { Header } from "@/components/Header";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { paths } from "@/config/paths";
+import { PERMS } from "@/config/perms";
 import { cn } from "@/lib/cn";
 import { storeService } from "@/services/store.service";
 import { useStoreStore } from "@/stores/store.store";
+import { usePerm } from "@/hooks/usePerm";
+import { clearStore as clearStoreContext } from "@/stores/clear";
 
 export const StoresPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const setStore = useStoreStore((s) => s.setStore);
-  const clearStore = useStoreStore((s) => s.clearStore);
   const currentStore = useStoreStore((s) => s.store);
+  const canCreate = usePerm(PERMS.stores.update);
+  const canUpdate = usePerm(PERMS.stores.update);
+  const canDelete = usePerm(PERMS.stores.delete);
   const [deleteTarget, setDeleteTarget] = useState<
     (typeof stores)[number] | null
   >(null);
@@ -34,7 +39,7 @@ export const StoresPage: React.FC = () => {
   useEffect(() => {
     if (!isLoading && stores.length === 1 && !currentStore) {
       setStore(stores[0]);
-      navigate(paths.overview.index, { replace: true });
+      navigate(paths.settings.index, { replace: true });
     }
   }, [stores, currentStore, isLoading, setStore, navigate]);
 
@@ -48,11 +53,12 @@ export const StoresPage: React.FC = () => {
           deletedIndex < updatedStores.length
             ? deletedIndex
             : updatedStores.length - 1;
+
+        clearStoreContext();
         setStore(updatedStores[nextIndex]);
         queryClient.setQueryData(["stores"], updatedStores);
       } else {
-        clearStore();
-
+        clearStoreContext();
         queryClient.setQueryData(["stores"], []);
         navigate(paths.stores.index, { replace: true });
       }
@@ -60,8 +66,9 @@ export const StoresPage: React.FC = () => {
   });
 
   const handleSelect = (st: (typeof stores)[number]) => {
+    clearStoreContext();
     setStore(st);
-    navigate(paths.overview.index, { replace: true });
+    navigate(paths.settings.index, { replace: true });
   };
 
   const handleDelete = (st: (typeof stores)[number]) => {
@@ -86,7 +93,7 @@ export const StoresPage: React.FC = () => {
               </p>
             )}
 
-            {!currentStore && stores.length < 1 && (
+            {!currentStore && stores.length < 1 && canCreate && (
               <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-(--color-bg-surface) my-4 border-y border-(--color-border-main)">
                 <h2 className="text-lg font-semibold text-(--color-text-main) mb-2">
                   Bắt đầu với Orderly
@@ -156,26 +163,32 @@ export const StoresPage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-4">
-                        <Link
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                          to={paths.stores.edit(st.id)}
-                          state={{ store: st }}
-                          className="text-(--color-warning)"
-                        >
-                          <Pencil size={20} />
-                        </Link>
+                        {isSelected && canUpdate && (
+                          <Link
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            to={paths.stores.edit(st.id)}
+                            state={{ store: st }}
+                            className="text-(--color-warning)"
+                          >
+                            <Pencil size={20} />
+                          </Link>
+                        )}
 
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(st);
-                          }}
-                          className="text-(--color-danger)"
-                        >
-                          <Trash2 size={20} />
-                        </button>
+                        {isSelected &&
+                          canDelete &&
+                          (!st.roleName || st.roleName.length === 0) && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(st);
+                              }}
+                              className="text-(--color-danger)"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          )}
                       </div>
                     </div>
                   );

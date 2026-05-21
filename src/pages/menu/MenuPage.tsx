@@ -13,14 +13,23 @@ import { Header } from "@/components/Header";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { paths } from "@/config/paths";
+import { PERMS } from "@/config/perms";
 import { formatMoney } from "@/utils/formatMoney";
 import { categoryService, type Category } from "@/services/category.service";
 import { menuItemService, type MenuItem } from "@/services/menu-item.service";
 import { useStoreStore } from "@/stores/store.store";
+import { usePerm } from "@/hooks/usePerm";
 
 export const MenuPage: React.FC = () => {
   const queryClient = useQueryClient();
   const storeId = useStoreStore((s) => s.store?.id);
+  const canCategoriesCreate = usePerm(PERMS.categories.create);
+  const canCategoriesUpdate = usePerm(PERMS.categories.update);
+  const canCategoriesDelete = usePerm(PERMS.categories.delete);
+  const canCategoriesReorder = usePerm(PERMS.categories.reorder);
+  const canMenuItemsCreate = usePerm(PERMS.menu_items.create);
+  const canMenuItemsUpdate = usePerm(PERMS.menu_items.update);
+  const canMenuItemsDelete = usePerm(PERMS.menu_items.delete);
 
   const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
     queryKey: ["categories", storeId],
@@ -81,7 +90,7 @@ export const MenuPage: React.FC = () => {
       {isPending && <LoadingOverlay />}
       <Header title="Thực đơn" Icon={BookOpen} backUrl={paths.settings.index}>
         <div className="flex items-center gap-4">
-          {categories.length > 1 && (
+          {categories.length > 1 && canCategoriesReorder && (
             <Link
               to={paths.menu.categories.reorder}
               className="text-(--color-primary)"
@@ -90,12 +99,14 @@ export const MenuPage: React.FC = () => {
             </Link>
           )}
 
-          <Link
-            to={paths.menu.categories.create}
-            className="text-(--color-primary)"
-          >
-            <CirclePlus size={24} />
-          </Link>
+          {canCategoriesCreate && (
+            <Link
+              to={paths.menu.categories.create}
+              className="text-(--color-primary)"
+            >
+              <CirclePlus size={24} />
+            </Link>
+          )}
         </div>
       </Header>
 
@@ -119,32 +130,38 @@ export const MenuPage: React.FC = () => {
                     </span>
 
                     <div className="flex items-center gap-4">
-                      <Link
-                        to={paths.menu.items.create}
-                        state={{
-                          categoryId: cat.id,
-                        }}
-                        className="text-(--color-primary)"
-                      >
-                        <CirclePlus size={20} />
-                      </Link>
+                      {canMenuItemsCreate && (
+                        <Link
+                          to={paths.menu.items.create}
+                          state={{
+                            categoryId: cat.id,
+                          }}
+                          className="text-(--color-primary)"
+                        >
+                          <CirclePlus size={20} />
+                        </Link>
+                      )}
 
-                      <Link
-                        to={paths.menu.categories.edit(cat.id)}
-                        state={{
-                          category: cat,
-                        }}
-                        className="text-(--color-warning)"
-                      >
-                        <Pencil size={20} />
-                      </Link>
+                      {canCategoriesUpdate && (
+                        <Link
+                          to={paths.menu.categories.edit(cat.id)}
+                          state={{
+                            category: cat,
+                          }}
+                          className="text-(--color-warning)"
+                        >
+                          <Pencil size={20} />
+                        </Link>
+                      )}
 
-                      <button
-                        onClick={() => setDeleteCatTarget(cat)}
-                        className="text-(--color-danger)"
-                      >
-                        <Trash2 size={20} />
-                      </button>
+                      {canCategoriesDelete && (
+                        <button
+                          onClick={() => setDeleteCatTarget(cat)}
+                          className="text-(--color-danger)"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -165,22 +182,26 @@ export const MenuPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-4">
-                          <Link
-                            to={paths.menu.items.edit(item.id)}
-                            state={{
-                              item,
-                            }}
-                            className="text-(--color-warning)"
-                          >
-                            <Pencil size={20} />
-                          </Link>
+                          {canMenuItemsUpdate && (
+                            <Link
+                              to={paths.menu.items.edit(item.id)}
+                              state={{
+                                item,
+                              }}
+                              className="text-(--color-warning)"
+                            >
+                              <Pencil size={20} />
+                            </Link>
+                          )}
 
-                          <button
-                            onClick={() => setDeleteItemTarget(item)}
-                            className="text-(--color-danger)"
-                          >
-                            <Trash2 size={20} />
-                          </button>
+                          {canMenuItemsDelete && (
+                            <button
+                              onClick={() => setDeleteItemTarget(item)}
+                              className="text-(--color-danger)"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}

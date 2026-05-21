@@ -4,6 +4,9 @@ export const leaveService = {
   list: (storeId: number, params?: { status?: string }) =>
     api.get(`/stores/${storeId}/leave`, { params }),
 
+  me: (storeId: number, params?: { status?: string }) =>
+    api.get(`/stores/${storeId}/leave/me`, { params }),
+
   create: (
     storeId: number,
     body: { fromDate: string; toDate: string; isPaid: boolean; reason?: string | null },

@@ -6,8 +6,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { paths } from "@/config/paths";
+import { PERMS } from "@/config/perms";
 import { employeeService } from "@/services/employee.service";
 import { useStoreStore } from "@/stores/store.store";
+import { usePerm } from "@/hooks/usePerm";
 import { formatMoney } from "@/utils/formatMoney";
 import { cn } from "@/lib/cn";
 import type { Employee } from "@/schemas/employee.schema";
@@ -21,6 +23,8 @@ function salaryLabel(emp: Employee): string {
 
 export const EmployeesPage: React.FC = () => {
   const storeId = useStoreStore((s) => s.store?.id);
+  const canCreate = usePerm(PERMS.employees.create);
+  const canUpdate = usePerm(PERMS.employees.update);
 
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ["employees", storeId],
@@ -35,9 +39,11 @@ export const EmployeesPage: React.FC = () => {
     <div className="flex-1 flex flex-col relative h-full">
       {isLoading && <LoadingOverlay />}
       <Header title="Quản lý nhân viên" Icon={Users} backUrl={paths.settings.index}>
-        <Link to={paths.employees.create} className="text-(--color-primary)">
-          <CirclePlus size={24} />
-        </Link>
+        {canCreate && (
+          <Link to={paths.employees.create} className="text-(--color-primary)">
+            <CirclePlus size={24} />
+          </Link>
+        )}
       </Header>
 
       <div className="flex-1 relative mt-4">
@@ -91,14 +97,16 @@ export const EmployeesPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3 flex-none">
-                      <Link
-                        to={paths.employees.edit(emp.id)}
-                        state={{ employee: emp }}
-                        className="text-(--color-warning)"
-                        aria-label="Sửa nhân viên"
-                      >
-                        <Pencil size={20} />
-                      </Link>
+                      {canUpdate && (
+                        <Link
+                          to={paths.employees.edit(emp.id)}
+                          state={{ employee: emp }}
+                          className="text-(--color-warning)"
+                          aria-label="Sửa nhân viên"
+                        >
+                          <Pencil size={20} />
+                        </Link>
+                      )}
                     </div>
                   </div>
                 ))}

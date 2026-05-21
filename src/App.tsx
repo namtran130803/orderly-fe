@@ -227,6 +227,10 @@ const router = createBrowserRouter([
                     element: <AttendanceHubPage />
                   },
                   {
+                    path: paths.attendance.me,
+                    element: <AttendanceEmployeePage />
+                  },
+                  {
                     path: '/attendance/employees/:employeeId',
                     element: <AttendanceEmployeePage />
                   },
@@ -251,6 +255,10 @@ const router = createBrowserRouter([
                     element: <LeaveListPage />
                   },
                   {
+                    path: paths.leave.me,
+                    element: <LeaveListPage />
+                  },
+                  {
                     path: paths.leave.request,
                     element: <LeaveRequestPage />
                   },
@@ -261,6 +269,10 @@ const router = createBrowserRouter([
                   {
                     path: paths.payroll.index,
                     element: <PayrollPage />
+                  },
+                  {
+                    path: paths.payroll.me,
+                    element: <PayrollEmployeeDetailPage />
                   },
                   {
                     path: paths.payroll.employeeDetail(':employeeId'),

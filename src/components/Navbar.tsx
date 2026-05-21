@@ -2,14 +2,20 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { BarChart3, Utensils, Settings, HandCoins } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { usePerm } from '@/hooks/usePerm';
+import { PERMS } from '@/config/perms';
 
 export const Navbar: React.FC = () => {
+  const canDashboard = usePerm(PERMS.dashboard.stats);
+  const canOrders = usePerm(PERMS.orders.list);
+  const canExpenses = usePerm(PERMS.expenses.list);
+
   const pages = [
-    { label: 'Tổng quan', to: '/overview', icon: BarChart3 },
-    { label: 'Đơn hàng', to: '/orders', icon: Utensils },
-    { label: 'Chi tiêu', to: '/expenses', icon: HandCoins },
+    canDashboard && { label: 'Tổng quan', to: '/overview', icon: BarChart3 },
+    canOrders && { label: 'Đơn hàng', to: '/orders', icon: Utensils },
+    canExpenses && { label: 'Chi tiêu', to: '/expenses', icon: HandCoins },
     { label: 'Quản lý', to: '/settings', icon: Settings },
-  ]
+  ].filter((page): page is { label: string; to: string; icon: typeof BarChart3 } => !!page);
 
   return (
     <nav className="bg-(--color-bg-surface) border-t border-(--color-border-main) flex justify-center items-center h-[60px]">

@@ -117,7 +117,7 @@ export const HrGuidePage: React.FC = () => {
           <StepList
             steps={[
               {
-                label: "Lịch làm việc",
+                label: "Lịch làm",
                 desc: "đặt ngày làm mặc định trong tuần",
               },
               { label: "Cài lương", desc: "gán mức lương cho từng nhân viên" },

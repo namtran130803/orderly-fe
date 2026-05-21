@@ -12,12 +12,17 @@ import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { formatMoney } from "@/utils/formatMoney";
 import { paths } from "@/config/paths";
+import { PERMS } from "@/config/perms";
 import { expenseService, type Expense } from "@/services/expense.service";
 import { useStoreStore } from "@/stores/store.store";
+import { usePerm } from "@/hooks/usePerm";
 
 export const ExpensesPage: React.FC = () => {
   const queryClient = useQueryClient();
   const storeId = useStoreStore((s) => s.store?.id);
+  const canCreate = usePerm(PERMS.expenses.create);
+  const canUpdate = usePerm(PERMS.expenses.update);
+  const canDelete = usePerm(PERMS.expenses.delete);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteQuery({
@@ -73,9 +78,11 @@ export const ExpensesPage: React.FC = () => {
     <div className="flex-1 flex flex-col relative">
       {(isLoading || isDeleting) && <LoadingOverlay />}
       <Header Icon={HandCoins} title="Chi tiêu">
-        <Link to={paths.expenses.create} className="text-(--color-primary)">
-          <CirclePlus size={24} />
-        </Link>
+        {canCreate && (
+          <Link to={paths.expenses.create} className="text-(--color-primary)">
+            <CirclePlus size={24} />
+          </Link>
+        )}
       </Header>
 
       <div className="flex-1 relative">
@@ -124,19 +131,23 @@ export const ExpensesPage: React.FC = () => {
                           </div>
 
                           <div className="flex items-center gap-4">
-                            <Link
-                              to={paths.expenses.edit(expense.id)}
-                              state={{ expense }}
-                              className="text-(--color-warning)"
-                            >
-                              <Pencil size={20} />
-                            </Link>
-                            <button
-                              onClick={() => setDeleteTarget(expense)}
-                              className="text-(--color-danger)"
-                            >
-                              <Trash2 size={20} />
-                            </button>
+                            {canUpdate && (
+                              <Link
+                                to={paths.expenses.edit(expense.id)}
+                                state={{ expense }}
+                                className="text-(--color-warning)"
+                              >
+                                <Pencil size={20} />
+                              </Link>
+                            )}
+                            {canDelete && (
+                              <button
+                                onClick={() => setDeleteTarget(expense)}
+                                className="text-(--color-danger)"
+                              >
+                                <Trash2 size={20} />
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}

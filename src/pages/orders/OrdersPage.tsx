@@ -21,6 +21,7 @@ import { Header } from "@/components/Header";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { paths } from "@/config/paths";
+import { PERMS } from "@/config/perms";
 import { useSwipeTabs } from "@/hooks/useSwipeTabs";
 import { cn } from "@/lib/cn";
 import { groupItems } from "@/utils/groupItems";
@@ -28,6 +29,7 @@ import { formatId, formatTime } from "@/utils/format";
 import { orderService, type Order } from "@/services/order.service";
 import { statusService } from "@/services/status.service";
 import { useStoreStore } from "@/stores/store.store";
+import { usePerm } from "@/hooks/usePerm";
 import { useOrderStore } from "@/stores/order.store";
 
 export const OrdersPage: React.FC = () => {
@@ -36,6 +38,11 @@ export const OrdersPage: React.FC = () => {
   const storeId = useStoreStore((s) => s.store?.id);
   const clearOrder = useOrderStore((s) => s.clearOrder);
   const [deleteTarget, setDeleteTarget] = useState<Order | null>(null);
+  const canCreate = usePerm(PERMS.orders.create);
+  const canUpdate = usePerm(PERMS.orders.update);
+  const canDelete = usePerm(PERMS.orders.delete);
+  const canAdvance = usePerm(PERMS.orders.advance);
+  const canRevert = usePerm(PERMS.orders.revert);
 
   useEffect(() => {
     clearOrder();
@@ -187,9 +194,11 @@ export const OrdersPage: React.FC = () => {
     <div className="flex-1 flex flex-col relative">
       {isLoading && <LoadingOverlay />}
       <Header title="Đơn Hàng" Icon={Utensils}>
-        <Link to={paths.orders.selectTable} className="text-(--color-primary)">
-          <CirclePlus size={24} />
-        </Link>
+        {canCreate && (
+          <Link to={paths.orders.selectTable} className="text-(--color-primary)">
+            <CirclePlus size={24} />
+          </Link>
+        )}
       </Header>
 
       <div className="bg-(--color-bg-surface) flex border-b border-(--color-border-main) overflow-x-auto">
@@ -276,31 +285,35 @@ export const OrdersPage: React.FC = () => {
                       </button>
                       {!isEndFilter && (
                         <>
-                          <button
-                            onClick={() => {
-                              useOrderStore.getState().clearCart();
-                              useOrderStore.getState().setTable(
-                                o.tableId
-                                  ? {
-                                      id: o.tableId,
-                                      name:
-                                        o.tableSnapshot || `Bàn ${o.tableId}`,
-                                    }
-                                  : null,
-                              );
-                              useOrderStore.getState().setEditingOrder(o.id);
-                              navigate(paths.orders.selectMenu);
-                            }}
-                            className="text-(--color-warning)"
-                          >
-                            <Edit3 size={20} />
-                          </button>
-                          <button
-                            onClick={() => setDeleteTarget(o)}
-                            className="text-(--color-danger)"
-                          >
-                            <Trash2 size={20} />
-                          </button>
+                          {canUpdate && (
+                            <button
+                              onClick={() => {
+                                useOrderStore.getState().clearCart();
+                                useOrderStore.getState().setTable(
+                                  o.tableId
+                                    ? {
+                                        id: o.tableId,
+                                        name:
+                                          o.tableSnapshot || `Bàn ${o.tableId}`,
+                                      }
+                                    : null,
+                                );
+                                useOrderStore.getState().setEditingOrder(o.id);
+                                navigate(paths.orders.selectMenu);
+                              }}
+                              className="text-(--color-warning)"
+                            >
+                              <Edit3 size={20} />
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => setDeleteTarget(o)}
+                              className="text-(--color-danger)"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          )}
                         </>
                       )}
                     </div>
@@ -342,20 +355,24 @@ export const OrdersPage: React.FC = () => {
                     </div>
 
                     <div className="flex flex-1">
-                      <button
-                        disabled={isStartFilter}
-                        onClick={() => revertOrder(o.id)}
-                        className="flex-1 flex items-center justify-center gap-1 border-l border-(--color-border-subtle) text-(--color-primary) disabled:opacity-30"
-                      >
-                        <ArrowLeftFromLine size={14} />
-                      </button>
-                      <button
-                        disabled={isEndFilter}
-                        onClick={() => advanceOrder(o.id)}
-                        className="flex-[1.5] flex items-center justify-center gap-1 border-l border-(--color-border-subtle) text-(--color-primary) disabled:opacity-30"
-                      >
-                        <ArrowRightFromLine size={14} />
-                      </button>
+                      {canRevert && (
+                        <button
+                          disabled={isStartFilter}
+                          onClick={() => revertOrder(o.id)}
+                          className="flex-1 flex items-center justify-center gap-1 border-l border-(--color-border-subtle) text-(--color-primary) disabled:opacity-30"
+                        >
+                          <ArrowLeftFromLine size={14} />
+                        </button>
+                      )}
+                      {canAdvance && (
+                        <button
+                          disabled={isEndFilter}
+                          onClick={() => advanceOrder(o.id)}
+                          className="flex-[1.5] flex items-center justify-center gap-1 border-l border-(--color-border-subtle) text-(--color-primary) disabled:opacity-30"
+                        >
+                          <ArrowRightFromLine size={14} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

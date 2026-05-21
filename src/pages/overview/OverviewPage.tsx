@@ -6,6 +6,36 @@ import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { formatMoney } from "@/utils/formatMoney";
 import { useStoreStore } from "@/stores/store.store";
 import { dashboardService } from "@/services/dashboard.service";
+import { cn } from "@/lib/cn";
+
+function topItemRankStyle(index: number) {
+  switch (index) {
+    case 0:
+      return {
+        rank: "text-(--color-warning) font-bold",
+        name: "text-(--color-warning) font-semibold",
+        qty: "text-(--color-warning) font-semibold",
+      };
+    case 1:
+      return {
+        rank: "text-(--color-info) font-bold",
+        name: "text-(--color-info) font-medium",
+        qty: "text-(--color-info) font-semibold",
+      };
+    case 2:
+      return {
+        rank: "text-(--color-primary) font-bold",
+        name: "text-(--color-primary) font-medium",
+        qty: "text-(--color-primary) font-semibold",
+      };
+    default:
+      return {
+        rank: "text-(--color-text-secondary) font-semibold",
+        name: "text-(--color-text-secondary)",
+        qty: "text-(--color-text-secondary) font-medium tabular-nums",
+      };
+  }
+}
 
 type PeriodType =
   | "today"
@@ -203,18 +233,32 @@ export const OverviewPage: React.FC = () => {
                   Các món bán chạy
                 </div>
                 <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
-                  {data.topItems.map((item, index) => (
-                    <div
-                      key={index}
-                      className="px-4 py-3 flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="font-semibold">{index + 1}.</span>
-                        <span>{item.name}</span>
+                  {data.topItems.map((item, index) => {
+                    const style = topItemRankStyle(index);
+                    return (
+                      <div
+                        key={index}
+                        className="px-4 py-3 flex items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span
+                            className={cn(
+                              "w-6 text-center tabular-nums shrink-0",
+                              style.rank,
+                            )}
+                          >
+                            {index + 1}
+                          </span>
+                          <span className={cn("truncate", style.name)}>
+                            {item.name}
+                          </span>
+                        </div>
+                        <span className={cn("tabular-nums shrink-0", style.qty)}>
+                          {item.qty}
+                        </span>
                       </div>
-                      <span className="tabular-nums">{item.qty}</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </>
             )}

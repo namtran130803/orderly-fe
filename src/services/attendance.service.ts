@@ -1,10 +1,21 @@
 import { api } from '@/lib/api';
 
 export const attendanceService = {
-  list: (
+  list: (storeId: number, params: { month: number; year: number }) =>
+    api.get(`/stores/${storeId}/attendance`, { params }),
+
+  employeeDetail: (
     storeId: number,
-    params: { month: number; year: number; employeeId?: number },
-  ) => api.get(`/stores/${storeId}/attendance`, { params }),
+    employeeId: number,
+    month: number,
+    year: number,
+  ) =>
+    api.get(`/stores/${storeId}/attendance/employees/${employeeId}`, {
+      params: { month, year },
+    }),
+
+  me: (storeId: number, month: number, year: number) =>
+    api.get(`/stores/${storeId}/attendance/me`, { params: { month, year } }),
 
   qrToken: (storeId: number) =>
     api.get<{

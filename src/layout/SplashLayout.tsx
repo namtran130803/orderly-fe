@@ -4,7 +4,7 @@ import { Store as StoreIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/stores/auth.store';
-import { clearAllStores } from '@/stores/clearAllStores';
+import { clearAll } from '@/stores/clear';
 import { paths } from '@/config/paths';
 
 const authRoutes = [paths.auth.login, paths.auth.register];
@@ -35,7 +35,7 @@ export const SplashLayout: React.FC = () => {
   }, [data, setUser]);
 
   useEffect(() => {
-    if (isError) clearAllStores();
+    if (isError) clearAll();
   }, [isError]);
 
   useEffect(() => {

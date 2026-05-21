@@ -53,11 +53,12 @@ export const OrderFormPage: React.FC = () => {
     }
   }, [cart, navigate, viewOnly, isEditing]);
 
-  const viewOnlyItems: GroupedItem[] = groupItems(existingItems)
-    .sort((a: GroupedItem, b: GroupedItem) => {
+  const viewOnlyItems: GroupedItem[] = groupItems(existingItems).sort(
+    (a: GroupedItem, b: GroupedItem) => {
       if (a.statusId !== b.statusId) return a.statusId - b.statusId;
       return (a.name || "").localeCompare(b.name || "");
-    });
+    },
+  );
 
   const oldItems: GroupedItem[] =
     existingItems.length > 0
@@ -77,7 +78,11 @@ export const OrderFormPage: React.FC = () => {
   const newItems: { name: string; price: number; qty: number }[] = [];
   cart.forEach((ci) => {
     if (ci.originalQty > 0 && ci.qty > ci.originalQty) {
-      newItems.push({ name: ci.name, price: ci.price, qty: ci.qty - ci.originalQty });
+      newItems.push({
+        name: ci.name,
+        price: ci.price,
+        qty: ci.qty - ci.originalQty,
+      });
     }
     if (ci.originalQty === 0 && ci.qty > 0) {
       newItems.push({ name: ci.name, price: ci.price, qty: ci.qty });
@@ -118,10 +123,7 @@ export const OrderFormPage: React.FC = () => {
     0,
   );
   const viewOnlyNameCount = new Set(viewOnlyItems.map((i) => i.name)).size;
-  const viewOnlyPortionCount = viewOnlyItems.reduce(
-    (sum, i) => sum + i.qty,
-    0,
-  );
+  const viewOnlyPortionCount = viewOnlyItems.reduce((sum, i) => sum + i.qty, 0);
 
   const oldTotal = oldItems.reduce(
     (sum, i) => sum + i.priceSnapshot * i.qty,
@@ -178,9 +180,7 @@ export const OrderFormPage: React.FC = () => {
               <div className="px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">Mã đơn</div>
                 <span>
-                  {orderDetail?.id
-                    ? `#${formatId(orderDetail.id)}`
-                    : "—"}
+                  {orderDetail?.id ? `#${formatId(orderDetail.id)}` : "—"}
                 </span>
               </div>
               <div className="px-4 py-3 flex items-center justify-between">
@@ -258,7 +258,7 @@ export const OrderFormPage: React.FC = () => {
             </div>
           </>
         )}
-        <div className="px-4 py-4 flex justify-between items-center border-t border-(--color-border-subtle)">
+        <div className="px-4 py-4 flex justify-between items-center">
           <div className="flex flex-col gap-1">
             <span className="font-bold text-(--color-text-main) text-xl">
               Tổng cộng
@@ -311,9 +311,9 @@ const OrderItemsSection: React.FC<{
         </span>
       </div>
       <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <div
-            key={item.key}
+            key={index}
             className="px-4 py-3 flex justify-between items-center"
           >
             <div className="flex flex-col gap-1 min-w-0">

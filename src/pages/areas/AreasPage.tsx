@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { paths } from "@/config/paths";
+import { PERMS } from "@/config/perms";
 import {
   areaService,
   tableService,
@@ -14,10 +15,17 @@ import {
   type Table,
 } from "@/services/area.service";
 import { useStoreStore } from "@/stores/store.store";
+import { usePerm } from "@/hooks/usePerm";
 
 export const AreasPage: React.FC = () => {
   const queryClient = useQueryClient();
   const storeId = useStoreStore((s) => s.store?.id);
+  const canAreasCreate = usePerm(PERMS.areas.create);
+  const canAreasUpdate = usePerm(PERMS.areas.update);
+  const canAreasDelete = usePerm(PERMS.areas.delete);
+  const canAreasReorder = usePerm(PERMS.areas.reorder);
+  const canTablesUpdate = usePerm(PERMS.tables.update);
+  const canTablesDelete = usePerm(PERMS.tables.delete);
 
   const { data: areas = [], isLoading: isAreasLoading } = useQuery({
     queryKey: ["areas", storeId],
@@ -72,14 +80,16 @@ export const AreasPage: React.FC = () => {
       {isPending && <LoadingOverlay />}
       <Header title="Bàn ăn" Icon={Grid} backUrl={paths.settings.index}>
         <div className="flex items-center gap-4">
-          {areas.length > 1 && (
+          {areas.length > 1 && canAreasReorder && (
             <Link to={paths.areas.reorder} className="text-(--color-primary)">
               <ArrowUpDown size={20} />
             </Link>
           )}
-          <Link to={paths.areas.create} className="text-(--color-primary)">
-            <CirclePlus size={24} />
-          </Link>
+          {canAreasCreate && (
+            <Link to={paths.areas.create} className="text-(--color-primary)">
+              <CirclePlus size={24} />
+            </Link>
+          )}
         </div>
       </Header>
 
@@ -102,20 +112,24 @@ export const AreasPage: React.FC = () => {
                     </span>
 
                     <div className="flex items-center gap-4">
-                      <Link
-                        to={paths.areas.edit(area.id)}
-                        state={{ area, tableCount: areaTables.length }}
-                        className="text-(--color-warning)"
-                      >
-                        <Pencil size={20} />
-                      </Link>
+                      {canAreasUpdate && (
+                        <Link
+                          to={paths.areas.edit(area.id)}
+                          state={{ area, tableCount: areaTables.length }}
+                          className="text-(--color-warning)"
+                        >
+                          <Pencil size={20} />
+                        </Link>
+                      )}
 
-                      <button
-                        onClick={() => setDeleteAreaTarget(area)}
-                        className="text-(--color-danger)"
-                      >
-                        <Trash2 size={20} />
-                      </button>
+                      {canAreasDelete && (
+                        <button
+                          onClick={() => setDeleteAreaTarget(area)}
+                          className="text-(--color-danger)"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -132,20 +146,24 @@ export const AreasPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-4">
-                          <Link
-                            to={paths.areas.tables.edit(t.id)}
-                            state={{ table: t }}
-                            className="text-(--color-warning)"
-                          >
-                            <Pencil size={20} />
-                          </Link>
+                          {canTablesUpdate && (
+                            <Link
+                              to={paths.areas.tables.edit(t.id)}
+                              state={{ table: t }}
+                              className="text-(--color-warning)"
+                            >
+                              <Pencil size={20} />
+                            </Link>
+                          )}
 
-                          <button
-                            onClick={() => setDeleteTableTarget(t)}
-                            className="text-(--color-danger)"
-                          >
-                            <Trash2 size={20} />
-                          </button>
+                          {canTablesDelete && (
+                            <button
+                              onClick={() => setDeleteTableTarget(t)}
+                              className="text-(--color-danger)"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}

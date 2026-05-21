@@ -13,13 +13,18 @@ import { Header } from "@/components/Header";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { paths } from "@/config/paths";
+import { PERMS } from "@/config/perms";
 import { storeRoleService } from "@/services/storeRole.service";
 import { useStoreStore } from "@/stores/store.store";
+import { usePerm } from "@/hooks/usePerm";
 import type { StoreRole } from "@/schemas/storeRole.schema";
 
 export const RolesPage: React.FC = () => {
   const queryClient = useQueryClient();
   const storeId = useStoreStore((s) => s.store?.id);
+  const canCreate = usePerm(PERMS.store_roles.create);
+  const canUpdate = usePerm(PERMS.store_roles.update);
+  const canDelete = usePerm(PERMS.store_roles.delete);
 
   const { data: roles = [], isLoading: isRolesLoading } = useQuery({
     queryKey: ["store-roles", storeId],
@@ -54,9 +59,11 @@ export const RolesPage: React.FC = () => {
         Icon={ShieldAlert}
         backUrl={paths.settings.index}
       >
-        <Link to={paths.roles.create} className="text-(--color-primary)">
-          <CirclePlus size={24} />
-        </Link>
+        {canCreate && (
+          <Link to={paths.roles.create} className="text-(--color-primary)">
+            <CirclePlus size={24} />
+          </Link>
+        )}
       </Header>
 
       <div className="flex-1 relative mt-4">
@@ -87,20 +94,24 @@ export const RolesPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-4 flex-none">
-                      <Link
-                        to={paths.roles.edit(role.id)}
-                        state={{ role }}
-                        className="text-(--color-warning)"
-                      >
-                        <Pencil size={20} />
-                      </Link>
+                      {canUpdate && (
+                        <Link
+                          to={paths.roles.edit(role.id)}
+                          state={{ role }}
+                          className="text-(--color-warning)"
+                        >
+                          <Pencil size={20} />
+                        </Link>
+                      )}
 
-                      <button
-                        onClick={() => setDeleteTarget(role)}
-                        className="text-(--color-danger)"
-                      >
-                        <Trash2 size={20} />
-                      </button>
+                      {canDelete && (
+                        <button
+                          onClick={() => setDeleteTarget(role)}
+                          className="text-(--color-danger)"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

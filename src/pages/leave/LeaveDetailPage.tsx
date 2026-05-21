@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Palmtree } from "lucide-react";
+import { MoveRight, Palmtree } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Header } from "@/components/Header";
@@ -10,6 +10,9 @@ import { paths } from "@/config/paths";
 import { navigateBackOrTo } from "@/lib/browser-history";
 import { leaveService } from "@/services/leave.service";
 import { useStoreStore } from "@/stores/store.store";
+import { usePerm } from "@/hooks/usePerm";
+import { PERMS } from "@/config/perms";
+import { cn } from "@/lib/cn";
 
 export const LeaveDetailPage: React.FC = () => {
   const { leaveId } = useParams();
@@ -19,6 +22,9 @@ export const LeaveDetailPage: React.FC = () => {
   const qc = useQueryClient();
   const storeId = useStoreStore((s) => s.store?.id);
   const row = (location.state as any)?.row;
+
+  const canApprove = usePerm(PERMS.leave.approve);
+  const canReject = usePerm(PERMS.leave.reject);
 
   const [dlg, setDlg] = useState<"ap" | "rj" | null>(null);
 
@@ -45,7 +51,7 @@ export const LeaveDetailPage: React.FC = () => {
     <div className="flex-1 flex flex-col relative h-full">
       {p && <LoadingOverlay />}
       <Header
-        title="Chi tiết đơn nghỉ"
+        title={r?.employee?.user?.name || "??n ngh?"}
         Icon={Palmtree}
         backUrl={paths.leave.index}
       />
@@ -57,36 +63,48 @@ export const LeaveDetailPage: React.FC = () => {
               <div className="text-sm font-semibold">
                 {r.employee?.user?.name}
               </div>
-              <div className="text-xs text-(--color-text-secondary)">
-                {r.fromDate?.slice?.(0, 10)} → {r.toDate?.slice?.(0, 10)}
+              <div className="text-xs text-(--color-text-secondary) flex items-center gap-2">
+                {r.fromDate?.slice?.(0, 10)} <MoveRight size={12} />{" "}
+                {r.toDate?.slice?.(0, 10)}
               </div>
-              <div className="text-xs">
+              <span
+                className={cn(
+                  "inline-flex items-center text-xs font-semibold",
+                  r.isPaid
+                    ? "text-(--color-warning)"
+                    : "text-(--color-text-secondary)",
+                )}
+              >
                 {r.isPaid ? "Nghỉ có lương" : "Nghỉ không lương"}
-              </div>
+              </span>
             </div>
             <h3 className="font-semibold text-(--color-text-secondary) p-4 pb-2">
               Lý do
             </h3>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 text-sm whitespace-pre-wrap">
-              {r.reason || "—"}
+              {r.reason || "Chưa có lý do"}
             </div>
 
-            {r.status === "PENDING" && (
+            {r.status === "PENDING" && (canApprove || canReject) && (
               <div className="mt-6 divide-y divide-(--color-border-main) border-y border-(--color-border-main)">
-                <button
-                  type="button"
-                  onClick={() => setDlg("ap")}
-                  className="w-full py-3 text-sm font-semibold bg-(--color-bg-surface) text-(--color-success)"
-                >
-                  Duyệt
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDlg("rj")}
-                  className="w-full py-3 text-sm font-semibold bg-(--color-bg-surface) text-(--color-danger)"
-                >
-                  Từ chối
-                </button>
+                {canApprove && (
+                  <button
+                    type="button"
+                    onClick={() => setDlg("ap")}
+                    className="w-full py-3 text-sm font-semibold bg-(--color-bg-surface) text-(--color-success)"
+                  >
+                    Duyệt
+                  </button>
+                )}
+                {canReject && (
+                  <button
+                    type="button"
+                    onClick={() => setDlg("rj")}
+                    className="w-full py-3 text-sm font-semibold bg-(--color-bg-surface) text-(--color-danger)"
+                  >
+                    Từ chối
+                  </button>
+                )}
               </div>
             )}
           </>

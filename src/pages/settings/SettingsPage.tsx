@@ -13,20 +13,42 @@ import {
   CalendarCheck2,
   CalendarRange,
   Palmtree,
-  QrCode,
-  Scan,
-  HandCoins,
+  CircleDollarSign,
   Info,
-  FileText,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { paths } from "@/config/paths";
 import { useAuthStore } from "@/stores/auth.store";
-import { clearAllStores } from "@/stores/clearAllStores";
+import { clearAll } from "@/stores/clear";
+import { usePerm } from "@/hooks/usePerm";
+import { PERMS } from "@/config/perms";
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const canAttendanceList = usePerm(PERMS.attendance.list);
+  const canLeaveList = usePerm(PERMS.leave.list);
+  const canPayrollPreview = usePerm(PERMS.payroll.preview);
+  const canMenuItemsList = usePerm(PERMS.menu_items.list);
+  const canAreasList = usePerm(PERMS.areas.list);
+  const canStatusesList = usePerm(PERMS.statuses.list);
+  const canStoreRolesList = usePerm(PERMS.store_roles.list);
+  const canEmployeesList = usePerm(PERMS.employees.list);
+
+  const handleAttendanceClick = () => {
+    if (canAttendanceList) navigate(paths.attendance.index);
+    else navigate(paths.attendance.me);
+  };
+
+  const handleLeaveClick = () => {
+    if (canLeaveList) navigate(paths.leave.index);
+    else navigate(paths.leave.me);
+  };
+
+  const handlePayrollClick = () => {
+    if (canPayrollPreview) navigate(paths.payroll.index);
+    else navigate(paths.payroll.me);
+  };
 
   return (
     <div className="flex-1 flex flex-col">
@@ -40,9 +62,7 @@ export const SettingsPage: React.FC = () => {
                 {user?.name?.charAt(0)?.toUpperCase() || "?"}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">
-                  {user?.name || "Chưa đăng nhập"}
-                </p>
+                <p className="font-medium truncate">{user?.name}</p>
                 <p className="text-(--color-text-secondary) truncate">
                   {user?.phone}
                 </p>
@@ -70,92 +90,109 @@ export const SettingsPage: React.FC = () => {
                 />
               </Link>
 
-              <Link
-                to={paths.menu.index}
-                className="w-full px-4 py-3 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <BookOpen className="text-(--color-success)" size={20} />
-                  <span className="text-sm text-(--color-text-main) font-medium">
-                    Thực đơn
-                  </span>
-                </div>
-                <ChevronRight
-                  size={20}
-                  className="text-(--color-text-placeholder)"
-                />
-              </Link>
+              {canMenuItemsList && (
+                <Link
+                  to={paths.menu.index}
+                  className="w-full px-4 py-3 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <BookOpen className="text-(--color-success)" size={20} />
+                    <span className="text-sm text-(--color-text-main) font-medium">
+                      Thực đơn
+                    </span>
+                  </div>
+                  <ChevronRight
+                    size={20}
+                    className="text-(--color-text-placeholder)"
+                  />
+                </Link>
+              )}
 
-              <Link
-                to={paths.areas.index}
-                className="w-full px-4 py-3 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <Grid className="text-(--color-warning)" size={20} />
-                  <span className="text-sm text-(--color-text-main) font-medium">
-                    Bàn ăn
-                  </span>
-                </div>
-                <ChevronRight
-                  size={20}
-                  className="text-(--color-text-placeholder)"
-                />
-              </Link>
+              {canAreasList && (
+                <Link
+                  to={paths.areas.index}
+                  className="w-full px-4 py-3 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <Grid className="text-(--color-warning)" size={20} />
+                    <span className="text-sm text-(--color-text-main) font-medium">
+                      Bàn ăn
+                    </span>
+                  </div>
+                  <ChevronRight
+                    size={20}
+                    className="text-(--color-text-placeholder)"
+                  />
+                </Link>
+              )}
 
-              <Link
-                to={paths.statuses.index}
-                className="w-full px-4 py-3 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <Activity className="text-(--color-info)" size={20} />
-                  <span className="text-sm text-(--color-text-main) font-medium">
-                    Quy trình
-                  </span>
-                </div>
-                <ChevronRight
-                  size={20}
-                  className="text-(--color-text-placeholder)"
-                />
-              </Link>
+              {canStatusesList && (
+                <Link
+                  to={paths.statuses.index}
+                  className="w-full px-4 py-3 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <Activity className="text-(--color-info)" size={20} />
+                    <span className="text-sm text-(--color-text-main) font-medium">
+                      Quy trình
+                    </span>
+                  </div>
+                  <ChevronRight
+                    size={20}
+                    className="text-(--color-text-placeholder)"
+                  />
+                </Link>
+              )}
             </div>
 
-            <h3 className="font-semibold text-(--color-text-secondary) p-4 pb-2">
-              Nhân viên & vai trò
-            </h3>
+            {(canStoreRolesList || canEmployeesList) && (
+              <h3 className="font-semibold text-(--color-text-secondary) p-4 pb-2">
+                Nhân viên & vai trò
+              </h3>
+            )}
 
-            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
-              <Link
-                to={paths.roles.index}
-                className="w-full px-4 py-3 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <ShieldAlert className="text-(--color-danger)" size={20} />
-                  <span className="text-sm text-(--color-text-main) font-medium">
-                    Vai trò
-                  </span>
-                </div>
-                <ChevronRight
-                  size={20}
-                  className="text-(--color-text-placeholder)"
-                />
-              </Link>
+            {canStoreRolesList && canEmployeesList && (
+              <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
+                {canStoreRolesList && (
+                  <Link
+                    to={paths.roles.index}
+                    className="w-full px-4 py-3 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <ShieldAlert
+                        className="text-(--color-danger)"
+                        size={20}
+                      />
+                      <span className="text-sm text-(--color-text-main) font-medium">
+                        Vai trò
+                      </span>
+                    </div>
+                    <ChevronRight
+                      size={20}
+                      className="text-(--color-text-placeholder)"
+                    />
+                  </Link>
+                )}
 
-              <Link
-                to={paths.employees.index}
-                className="w-full px-4 py-3 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <Users className="text-(--color-info)" size={20} />
-                  <span className="text-sm text-(--color-text-main) font-medium">
-                    Nhân viên
-                  </span>
-                </div>
-                <ChevronRight
-                  size={20}
-                  className="text-(--color-text-placeholder)"
-                />
-              </Link>
-            </div>
+                {canEmployeesList && (
+                  <Link
+                    to={paths.employees.index}
+                    className="w-full px-4 py-3 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Users className="text-(--color-info)" size={20} />
+                      <span className="text-sm text-(--color-text-main) font-medium">
+                        Nhân viên
+                      </span>
+                    </div>
+                    <ChevronRight
+                      size={20}
+                      className="text-(--color-text-placeholder)"
+                    />
+                  </Link>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
               <h3 className="font-semibold text-(--color-text-secondary)">
@@ -178,7 +215,7 @@ export const SettingsPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <CalendarRange className="text-(--color-info)" size={20} />
                   <span className="text-sm text-(--color-text-main) font-medium">
-                    Lịch làm việc
+                    Lịch làm
                   </span>
                 </div>
                 <ChevronRight
@@ -186,38 +223,10 @@ export const SettingsPage: React.FC = () => {
                   className="text-(--color-text-placeholder)"
                 />
               </Link>
-              <Link
-                to={paths.attendance.kiosk}
-                className="w-full px-4 py-3 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <QrCode className="text-(--color-primary)" size={20} />
-                  <span className="text-sm text-(--color-text-main) font-medium">
-                    QR chấm công
-                  </span>
-                </div>
-                <ChevronRight
-                  size={20}
-                  className="text-(--color-text-placeholder)"
-                />
-              </Link>
-              <Link
-                to={paths.attendance.scan}
-                className="w-full px-4 py-3 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <Scan className="text-(--color-info)" size={20} />
-                  <span className="text-sm text-(--color-text-main) font-medium">
-                    Quét QR chấm công
-                  </span>
-                </div>
-                <ChevronRight
-                  size={20}
-                  className="text-(--color-text-placeholder)"
-                />
-              </Link>
-              <Link
-                to={paths.attendance.index}
+
+              <button
+                type="button"
+                onClick={handleAttendanceClick}
                 className="w-full px-4 py-3 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
@@ -226,50 +235,42 @@ export const SettingsPage: React.FC = () => {
                     size={20}
                   />
                   <span className="text-sm text-(--color-text-main) font-medium">
-                    Danh sách chấm công
+                    Chấm công
                   </span>
                 </div>
                 <ChevronRight
                   size={20}
                   className="text-(--color-text-placeholder)"
                 />
-              </Link>
-              <Link
-                to={paths.leave.request}
-                className="w-full px-4 py-3 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <FileText className="text-(--color-primary)" size={20} />
-                  <span className="text-sm text-(--color-text-main) font-medium">
-                    Viết đơn xin nghỉ
-                  </span>
-                </div>
-                <ChevronRight
-                  size={20}
-                  className="text-(--color-text-placeholder)"
-                />
-              </Link>
-              <Link
-                to={paths.leave.index}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLeaveClick}
                 className="w-full px-4 py-3 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
                   <Palmtree className="text-(--color-success)" size={20} />
                   <span className="text-sm text-(--color-text-main) font-medium">
-                    Danh sách đơn nghỉ
+                    Xin nghỉ
                   </span>
                 </div>
                 <ChevronRight
                   size={20}
                   className="text-(--color-text-placeholder)"
                 />
-              </Link>
-              <Link
-                to={paths.payroll.index}
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePayrollClick}
                 className="w-full px-4 py-3 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <HandCoins className="text-(--color-warning)" size={20} />
+                  <CircleDollarSign
+                    className="text-(--color-warning)"
+                    size={20}
+                  />
                   <span className="text-sm text-(--color-text-main) font-medium">
                     Bảng lương
                   </span>
@@ -278,13 +279,13 @@ export const SettingsPage: React.FC = () => {
                   size={20}
                   className="text-(--color-text-placeholder)"
                 />
-              </Link>
+              </button>
             </div>
 
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) mt-4">
               <button
                 onClick={() => {
-                  clearAllStores();
+                  clearAll();
                   navigate(paths.auth.login, { replace: true });
                 }}
                 className="w-full px-4 py-3 flex items-center justify-start gap-3 text-(--color-danger)"

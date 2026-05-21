@@ -81,6 +81,7 @@ export const paths = {
         index: attendance,
         kiosk: `${attendance}/kiosk`,
         scan: `${attendance}/scan`,
+        me: `${attendance}/me`,
         employee: (id: string | number) => `${attendance}/employees/${id}`,
         editRecord: (id: string | number) => `${attendance}/records/${id}/edit`,
         createRecord: `${attendance}/records/create`,
@@ -93,9 +94,11 @@ export const paths = {
         index: leave,
         detail: (id: string | number) => `${leave}/${id}`,
         request: `${leave}/request`,
+        me: `${leave}/me`,
     },
     payroll: {
         index: payroll,
+        me: `${payroll}/me`,
         employeeDetail: (id: string | number) => `${payroll}/employees/${id}`,
     },
 }

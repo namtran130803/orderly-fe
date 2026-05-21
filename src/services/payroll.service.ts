@@ -5,6 +5,12 @@ export const payrollService = {
   preview: (storeId: number, month: number, year: number) =>
     api.get(`/stores/${storeId}/payroll`, { params: { month, year } }),
 
+  me: (storeId: number, month: number, year: number) =>
+    api.get<{ success: boolean; data: PayrollEmployeeDetail; message: string }>(
+      `/stores/${storeId}/payroll/me`,
+      { params: { month, year } },
+    ),
+
   employeeDetail: (storeId: number, employeeId: number, month: number, year: number) =>
     api.get<{ success: boolean; data: PayrollEmployeeDetail; message: string }>(
       `/stores/${storeId}/payroll/employees/${employeeId}`,

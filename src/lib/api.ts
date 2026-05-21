@@ -1,7 +1,7 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/stores/auth.store';
-import { clearAllStores } from '@/stores/clearAllStores';
+import { clearAll } from '@/stores/clear';
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -24,7 +24,7 @@ api.interceptors.response.use(
       toast.error('Không kết nối được máy chủ. Kiểm tra mạng hoặc backend đang chạy.');
     }
     if (error.response?.status === 401) {
-      clearAllStores();
+      clearAll();
     }
     return Promise.reject(error);
   },

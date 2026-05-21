@@ -12,8 +12,16 @@ import { navigateBackOrTo } from "@/lib/browser-history";
 import { employeeService } from "@/services/employee.service";
 import { storeRoleService } from "@/services/storeRole.service";
 import { useStoreStore } from "@/stores/store.store";
-import { createEmployeeResolver, updateSalaryResolver, type CreateEmployeeDto, type UpdateSalaryDto, type Employee } from "@/schemas/employee.schema";
-import { digitsFromMoneyInput, formatMoneyInputDisplay } from "@/utils/moneyInput";
+import {
+  createEmployeeResolver,
+  type CreateEmployeeDto,
+  type UpdateSalaryDto,
+  type Employee,
+} from "@/schemas/employee.schema";
+import {
+  digitsFromMoneyInput,
+  formatMoneyInputDisplay,
+} from "@/utils/moneyInput";
 import { cn } from "@/lib/cn";
 
 const DAY_LABELS: { value: number; label: string }[] = [
@@ -56,7 +64,10 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
     if (type === "edit" && employee) {
       const st = employee.salaryType ?? "MONTHLY";
       setSalaryType(st);
-      const amount = st === "HOURLY" ? (employee.hourlyRate ?? 0) : (employee.baseSalary ?? 0);
+      const amount =
+        st === "HOURLY"
+          ? (employee.hourlyRate ?? 0)
+          : (employee.baseSalary ?? 0);
       setAmountDigits(amount === 0 ? "" : String(amount));
       const noCustomDays = !employee.workDays || employee.workDays.length === 0;
       setUseStoreDays(noCustomDays);
@@ -76,7 +87,7 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
   const { data: employeeRoles = [], isLoading: isLoadingEmpRoles } = useQuery({
     queryKey: ["employee-roles", storeId, employee?.id],
     queryFn: async () => {
-      const res = await employeeService.getRoles(storeId!, employee.id);
+      const res = await employeeService.getRoles(storeId!, employee!.id);
       return res.data.data;
     },
     enabled: type === "edit" && !!storeId && !!employee,
@@ -85,7 +96,8 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
   const employeeRoleIds = employeeRoles.map((r: any) => r.id);
 
   const { mutate: createEmployee, isPending: isCreating } = useMutation({
-    mutationFn: (data: CreateEmployeeDto) => employeeService.create(storeId!, data),
+    mutationFn: (data: CreateEmployeeDto) =>
+      employeeService.create(storeId!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees", storeId] });
       navigateBackOrTo(navigate, paths.employees.index);
@@ -109,9 +121,11 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
 
   const { mutate: assignRoles } = useMutation({
     mutationFn: (roleIds: number[]) =>
-      employeeService.assignRoles(storeId!, employee.id, { roleIds }),
+      employeeService.assignRoles(storeId!, employee!.id, { roleIds }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["employee-roles", storeId, employee?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["employee-roles", storeId, employee?.id],
+      });
       queryClient.invalidateQueries({ queryKey: ["employees", storeId] });
     },
     onError: (err: any) => {
@@ -154,7 +168,12 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
 
   const handleToggleRoleEdit = (roleId: number, checked: boolean) => {
     if (updatingRoleId !== null) return;
-    if (!checked && employeeRoleIds.length === 1 && employeeRoleIds.includes(roleId)) return;
+    if (
+      !checked &&
+      employeeRoleIds.length === 1 &&
+      employeeRoleIds.includes(roleId)
+    )
+      return;
 
     let newRoleIds = [...employeeRoleIds];
     if (checked) {
@@ -264,7 +283,9 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
           <div className="flex-1 overflow-auto pb-6">
             {/* Phone */}
             <div className="mt-4 bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex items-center gap-4">
-              <span className="font-medium text-sm text-(--color-text-main) flex-none">Số điện thoại</span>
+              <span className="font-medium text-sm text-(--color-text-main) flex-none">
+                Số điện thoại
+              </span>
               <input
                 autoFocus
                 type="tel"
@@ -275,10 +296,15 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
             </div>
 
             {/* Salary type */}
-            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Loại lương</h3>
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">
+              Loại lương
+            </h3>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
               {(["MONTHLY", "HOURLY"] as const).map((type) => (
-                <label key={type} className="flex items-center justify-between px-4 py-3 cursor-pointer">
+                <label
+                  key={type}
+                  className="flex items-center justify-between px-4 py-3 cursor-pointer"
+                >
                   <span className="text-sm text-(--color-text-main)">
                     {type === "MONTHLY" ? "Lương tháng" : "Lương giờ"}
                   </span>
@@ -298,7 +324,9 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
               {salaryType === "MONTHLY" ? "Lương tháng" : "Lương mỗi giờ"}
             </h3>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex items-center gap-4">
-              <span className="text-sm text-(--color-text-secondary) flex-none">₫</span>
+              <span className="text-sm text-(--color-text-secondary) flex-none">
+                ₫
+              </span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -315,10 +343,14 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
             </p>
 
             {/* Schedule */}
-            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Lịch làm việc</h3>
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">
+              Lịch làm
+            </h3>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
               <label className="flex items-center justify-between px-4 py-3 cursor-pointer">
-                <span className="text-sm text-(--color-text-main)">Dùng lịch cửa hàng</span>
+                <span className="text-sm text-(--color-text-main)">
+                  Dùng lịch cửa hàng
+                </span>
                 <input
                   type="radio"
                   name="scheduleMode"
@@ -328,7 +360,9 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
                 />
               </label>
               <label className="flex items-center justify-between px-4 py-3 cursor-pointer">
-                <span className="text-sm text-(--color-text-main)">Lịch riêng</span>
+                <span className="text-sm text-(--color-text-main)">
+                  Lịch riêng
+                </span>
                 <input
                   type="radio"
                   name="scheduleMode"
@@ -341,7 +375,9 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
 
             {!useStoreDays && (
               <>
-                <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Ngày làm</h3>
+                <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">
+                  Ngày làm
+                </h3>
                 <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex flex-wrap gap-2">
                   {DAY_LABELS.map(({ value, label }) => {
                     const checked = customDays.includes(value);
@@ -366,7 +402,9 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
             )}
 
             {/* Roles */}
-            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Vai trò</h3>
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">
+              Vai trò
+            </h3>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
               {roles.length === 0 ? (
                 <div className="text-center py-4 text-(--color-text-secondary) italic text-xs">
@@ -379,7 +417,9 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
                   return (
                     <label
                       key={role.id}
-                      onClick={(e) => { if (isLastRole) e.preventDefault(); }}
+                      onClick={(e) => {
+                        if (isLastRole) e.preventDefault();
+                      }}
                       className={cn(
                         "flex items-center justify-between px-4 py-3 group select-none",
                         isLastRole ? "cursor-not-allowed" : "cursor-pointer",
@@ -419,15 +459,23 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
 
             {/* Warning */}
             <div className="mt-4 mx-4 flex items-start gap-2 text-xs text-(--color-text-secondary)">
-              <AlertTriangle size={14} className="mt-0.5 flex-none text-(--color-warning)" />
+              <AlertTriangle
+                size={14}
+                className="mt-0.5 flex-none text-(--color-warning)"
+              />
               <span>Thay đổi này không ảnh hưởng bảng lương đã chốt.</span>
             </div>
 
             {/* Salary type */}
-            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Loại lương</h3>
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">
+              Loại lương
+            </h3>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
               {(["MONTHLY", "HOURLY"] as const).map((t) => (
-                <label key={t} className="flex items-center justify-between px-4 py-3 cursor-pointer">
+                <label
+                  key={t}
+                  className="flex items-center justify-between px-4 py-3 cursor-pointer"
+                >
                   <span className="text-sm text-(--color-text-main)">
                     {t === "MONTHLY" ? "Lương tháng" : "Lương giờ"}
                   </span>
@@ -447,12 +495,16 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
               {salaryType === "MONTHLY" ? "Lương tháng" : "Lương mỗi giờ"}
             </h3>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex items-center gap-4">
-              <span className="text-sm text-(--color-text-secondary) flex-none">₫</span>
+              <span className="text-sm text-(--color-text-secondary) flex-none">
+                ₫
+              </span>
               <input
                 type="text"
                 inputMode="numeric"
                 value={formatMoneyInputDisplay(amountDigits)}
-                onChange={(e) => setAmountDigits(digitsFromMoneyInput(e.target.value))}
+                onChange={(e) =>
+                  setAmountDigits(digitsFromMoneyInput(e.target.value))
+                }
                 placeholder="0"
                 className="flex-1 text-right text-sm"
               />
@@ -464,10 +516,14 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
             </p>
 
             {/* Schedule */}
-            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Lịch làm việc</h3>
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">
+              Lịch làm
+            </h3>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
               <label className="flex items-center justify-between px-4 py-3 cursor-pointer">
-                <span className="text-sm text-(--color-text-main)">Dùng lịch cửa hàng</span>
+                <span className="text-sm text-(--color-text-main)">
+                  Dùng lịch cửa hàng
+                </span>
                 <input
                   type="radio"
                   name="editSchedule"
@@ -480,7 +536,9 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
                 />
               </label>
               <label className="flex items-center justify-between px-4 py-3 cursor-pointer">
-                <span className="text-sm text-(--color-text-main)">Lịch riêng</span>
+                <span className="text-sm text-(--color-text-main)">
+                  Lịch riêng
+                </span>
                 <input
                   type="radio"
                   name="editSchedule"
@@ -493,7 +551,9 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
 
             {!useStoreDays && (
               <>
-                <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Ngày làm</h3>
+                <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">
+                  Ngày làm
+                </h3>
                 <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) px-4 py-3 flex flex-wrap gap-2">
                   {DAY_LABELS.map(({ value, label }) => {
                     const checked = customDays.includes(value);
@@ -524,7 +584,9 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
             )}
 
             {/* Roles */}
-            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">Vai trò</h3>
+            <h3 className="font-semibold text-(--color-text-secondary) px-4 pt-5 pb-2">
+              Vai trò
+            </h3>
             <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
               {roles.length === 0 ? (
                 <div className="text-center py-4 text-(--color-text-secondary) italic text-xs">
@@ -555,13 +617,18 @@ export const EmployeeFormPage: React.FC<Props> = ({ type }) => {
                       </span>
                       <div className="flex items-center gap-2">
                         {isThisUpdating && (
-                          <Loader2 size={16} className="animate-spin text-(--color-primary)" />
+                          <Loader2
+                            size={16}
+                            className="animate-spin text-(--color-primary)"
+                          />
                         )}
                         <input
                           type="checkbox"
                           checked={isChecked}
                           disabled={isThisUpdating}
-                          onChange={(e) => handleToggleRoleEdit(role.id, e.target.checked)}
+                          onChange={(e) =>
+                            handleToggleRoleEdit(role.id, e.target.checked)
+                          }
                           className={cn(
                             "rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) size-4 cursor-pointer disabled:cursor-not-allowed",
                             isLockedLast && "cursor-not-allowed",

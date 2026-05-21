@@ -13,16 +13,22 @@ import { Header } from "@/components/Header";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { paths } from "@/config/paths";
+import { PERMS } from "@/config/perms";
 import {
   statusService,
   STATUS_TYPE,
   type Status,
 } from "@/services/status.service";
 import { useStoreStore } from "@/stores/store.store";
+import { usePerm } from "@/hooks/usePerm";
 
 export const StatusesPage: React.FC = () => {
   const queryClient = useQueryClient();
   const storeId = useStoreStore((s) => s.store?.id);
+  const canCreate = usePerm(PERMS.statuses.create);
+  const canUpdate = usePerm(PERMS.statuses.update);
+  const canDelete = usePerm(PERMS.statuses.delete);
+  const canReorder = usePerm(PERMS.statuses.reorder);
 
   const { data: statuses = [], isLoading: isStatusesLoading } = useQuery({
     queryKey: ["statuses", storeId],
@@ -57,7 +63,7 @@ export const StatusesPage: React.FC = () => {
         backUrl={paths.settings.index}
       >
         <div className="flex items-center gap-4">
-          {midCount > 1 && (
+          {midCount > 1 && canReorder && (
             <Link
               to={paths.statuses.reorder}
               className="text-(--color-primary)"
@@ -66,7 +72,7 @@ export const StatusesPage: React.FC = () => {
             </Link>
           )}
 
-          {canAddMore && (
+          {canAddMore && canCreate && (
             <Link to={paths.statuses.create} className="text-(--color-primary)">
               <CirclePlus size={24} />
             </Link>
@@ -98,17 +104,19 @@ export const StatusesPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <Link
-                      to={paths.statuses.edit(st.id)}
-                      state={{
-                        status: st,
-                      }}
-                      className="text-(--color-warning)"
-                    >
-                      <Pencil size={20} />
-                    </Link>
+                    {canUpdate && (
+                      <Link
+                        to={paths.statuses.edit(st.id)}
+                        state={{
+                          status: st,
+                        }}
+                        className="text-(--color-warning)"
+                      >
+                        <Pencil size={20} />
+                      </Link>
+                    )}
 
-                    {st.type === STATUS_TYPE.MID && (
+                    {st.type === STATUS_TYPE.MID && canDelete && (
                       <button
                         onClick={() => setDeleteTarget(st)}
                         className="text-(--color-danger)"
