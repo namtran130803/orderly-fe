@@ -12,6 +12,7 @@ import { formatId } from "@/utils/format";
 import { useStoreStore } from "@/stores/store.store";
 import { todayVnDateString } from "@/lib/date-vn";
 import { useOrderStore } from "@/stores/order.store";
+import { useStoreOrdersRealtime } from "@/hooks/useStoreOrdersRealtime";
 
 type GroupedItem = {
   id: number;
@@ -26,6 +27,7 @@ export const OrderFormPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const storeId = useStoreStore((s) => s.store?.id);
+  useStoreOrdersRealtime(storeId);
 
   const table = useOrderStore((s) => s.table);
   const editingOrderId = useOrderStore((s) => s.editingOrderId);

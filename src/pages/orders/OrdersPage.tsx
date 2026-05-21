@@ -31,6 +31,7 @@ import { statusService } from "@/services/status.service";
 import { useStoreStore } from "@/stores/store.store";
 import { usePerm } from "@/hooks/usePerm";
 import { useOrderStore } from "@/stores/order.store";
+import { useStoreOrdersRealtime } from "@/hooks/useStoreOrdersRealtime";
 
 export const OrdersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -43,6 +44,8 @@ export const OrdersPage: React.FC = () => {
   const canDelete = usePerm(PERMS.orders.delete);
   const canAdvance = usePerm(PERMS.orders.advance);
   const canRevert = usePerm(PERMS.orders.revert);
+
+  useStoreOrdersRealtime(storeId);
 
   useEffect(() => {
     clearOrder();

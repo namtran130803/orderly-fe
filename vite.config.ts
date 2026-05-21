@@ -25,6 +25,13 @@ export default defineConfig({
         target: 'http://192.168.1.9:3000',
         changeOrigin: true,
       },
+      // Soketi (Pusher WS) — HTTPS FE không gọi ws://:6001 trực tiếp (mixed content)
+      '/app': {
+        target: 'http://127.0.0.1:6001',
+        ws: true,
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 })
