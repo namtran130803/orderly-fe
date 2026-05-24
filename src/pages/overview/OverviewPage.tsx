@@ -1,266 +1,192 @@
-import { BarChart3, Plus, Minus, Utensils, RefreshCw } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { BarChart3, RefreshCw } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useIsFetching, useQueryClient } from "@tanstack/react-query";
+
 import { Header } from "@/components/Header";
-import { LoadingOverlay } from "@/components/LoadingOverlay";
-import { formatMoney } from "@/utils/formatMoney";
-import { useStoreStore } from "@/stores/store.store";
-import { dashboardService } from "@/services/dashboard.service";
+import { useDashboardRealtime } from "@/hooks/useDashboardRealtime";
+import { useSwipeTabs } from "@/hooks/useSwipeTabs";
 import { cn } from "@/lib/cn";
+import {
+  getOverviewPeriodRangeVN,
+  type OverviewPeriodPreset,
+  todayVnDateString,
+} from "@/lib/date-vn";
+import { useStoreStore } from "@/stores/store.store";
 
-function topItemRankStyle(index: number) {
-  switch (index) {
-    case 0:
-      return {
-        rank: "text-(--color-warning) font-bold",
-        name: "text-(--color-warning) font-semibold",
-        qty: "text-(--color-warning) font-semibold",
-      };
-    case 1:
-      return {
-        rank: "text-(--color-info) font-bold",
-        name: "text-(--color-info) font-medium",
-        qty: "text-(--color-info) font-semibold",
-      };
-    case 2:
-      return {
-        rank: "text-(--color-primary) font-bold",
-        name: "text-(--color-primary) font-medium",
-        qty: "text-(--color-primary) font-semibold",
-      };
-    default:
-      return {
-        rank: "text-(--color-text-secondary) font-semibold",
-        name: "text-(--color-text-secondary)",
-        qty: "text-(--color-text-secondary) font-medium tabular-nums",
-      };
-  }
-}
+import { OverviewPeriodTab } from "./OverviewPeriodTab";
+import { OverviewTodayTab } from "./OverviewTodayTab";
 
-type PeriodType =
-  | "today"
-  | "yesterday"
-  | "thisWeek"
-  | "lastWeek"
-  | "thisMonth"
-  | "lastMonth";
-
-function toLocalDateStr(d: Date) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-function getDateRange(period: PeriodType) {
-  const now = new Date();
-  const from = new Date(now);
-  const to = new Date(now);
-
-  if (period === "today") {
-    from.setHours(0, 0, 0, 0);
-  } else if (period === "yesterday") {
-    from.setDate(now.getDate() - 1);
-    from.setHours(0, 0, 0, 0);
-    to.setDate(now.getDate() - 1);
-    to.setHours(23, 59, 59, 999);
-  } else if (period === "thisWeek") {
-    const dayOfWeek = now.getDay();
-    const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    from.setDate(now.getDate() - diff);
-    from.setHours(0, 0, 0, 0);
-  } else if (period === "lastWeek") {
-    const dayOfWeek = now.getDay();
-    const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    from.setDate(now.getDate() - diff - 7);
-    from.setHours(0, 0, 0, 0);
-    to.setDate(from.getDate() + 6);
-    to.setHours(23, 59, 59, 999);
-  } else if (period === "thisMonth") {
-    from.setDate(1);
-    from.setHours(0, 0, 0, 0);
-  } else if (period === "lastMonth") {
-    from.setDate(1);
-    from.setMonth(now.getMonth() - 1);
-    from.setHours(0, 0, 0, 0);
-    to.setDate(0);
-    to.setHours(23, 59, 59, 999);
-  }
-
-  return {
-    from: toLocalDateStr(from),
-    to: toLocalDateStr(to),
-  };
-}
-
-function getPeriodLabel(period: PeriodType) {
-  const now = new Date();
-  if (period === "today") {
-    return now.toLocaleDateString("vi-VN", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  }
-  if (period === "yesterday") {
-    const y = new Date(now);
-    y.setDate(now.getDate() - 1);
-    return `Hôm qua — ${y.toLocaleDateString("vi-VN")}`;
-  }
-  if (period === "thisWeek") {
-    const from = new Date(now);
-    const dayOfWeek = now.getDay();
-    const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    from.setDate(now.getDate() - diff);
-    return `Tuần này (${from.toLocaleDateString("vi-VN")} - ${now.toLocaleDateString("vi-VN")})`;
-  }
-  if (period === "lastWeek") {
-    const from = new Date(now);
-    const dayOfWeek = now.getDay();
-    const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    from.setDate(now.getDate() - diff - 7);
-    const to = new Date(from);
-    to.setDate(from.getDate() + 6);
-    return `Tuần trước (${from.toLocaleDateString("vi-VN")} - ${to.toLocaleDateString("vi-VN")})`;
-  }
-  if (period === "thisMonth") {
-    return `Tháng ${now.getMonth() + 1}/${now.getFullYear()}`;
-  }
-  return `Tháng ${now.getMonth()}/${now.getFullYear()}`;
-}
+const OVERVIEW_TABS = [{ id: "today" as const }, { id: "period" as const }];
 
 export const OverviewPage: React.FC = () => {
   const store = useStoreStore((s) => s.store);
   const storeId = useStoreStore((s) => s.store?.id);
   const queryClient = useQueryClient();
-  const [period, setPeriod] = useState<PeriodType>("today");
 
-  const { from, to } = getDateRange(period);
+  const [overviewTab, setOverviewTab] = useState<"today" | "period">("today");
 
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ["dashboard", storeId, from, to],
-    queryFn: async () => {
-      const res = await dashboardService.getStats(storeId!, from, to);
-      return res.data.data;
-    },
-    enabled: !!storeId,
+  const [periodPreset, setPeriodPreset] = useState<OverviewPeriodPreset>(
+    "thisMonth",
+  );
+
+  const todayAnchor = todayVnDateString();
+
+  const { from: periodFrom, to: periodTo } = useMemo(
+    () => getOverviewPeriodRangeVN(periodPreset),
+    [periodPreset],
+  );
+
+  const swipeHandlers = useSwipeTabs({
+    items: OVERVIEW_TABS,
+    currentId: overviewTab,
+    setCurrentId: setOverviewTab,
+    enabled: true,
+  });
+
+  useDashboardRealtime(storeId, {
+    overviewTab,
+    periodFrom,
+    periodTo,
+    todayVn: todayAnchor,
   });
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({
-      queryKey: ["dashboard", storeId, from, to],
+    if (!storeId) return;
+
+    if (overviewTab === "today") {
+      void queryClient.invalidateQueries({
+        queryKey: ["dashboard", "operations", storeId],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["dashboard", "finance", storeId, todayAnchor, todayAnchor],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["dashboard", "staff", storeId, todayAnchor, todayAnchor],
+      });
+      return;
+    }
+
+    void queryClient.invalidateQueries({
+      queryKey: ["dashboard", "finance", storeId, periodFrom, periodTo],
+    });
+    void queryClient.invalidateQueries({
+      queryKey: ["dashboard", "orders", storeId, periodFrom, periodTo],
+    });
+    void queryClient.invalidateQueries({
+      queryKey: ["dashboard", "staff", storeId, periodFrom, periodTo],
     });
   };
 
-  const data = stats || { revenue: 0, expense: 0, orderCount: 0, topItems: [] };
-
-  const periodLabel = getPeriodLabel(period);
+  const fetchingAny =
+    useIsFetching({
+      predicate: (q) => {
+        const k = q.queryKey as unknown[];
+        if (k[0] !== "dashboard" || !storeId || k[2] !== storeId)
+          return false;
+        if (overviewTab === "today") {
+          const op = k[1];
+          const financeTodaySlice =
+            op === "finance" && k[3] === todayAnchor && k[4] === todayAnchor;
+          const staffTodaySlice =
+            op === "staff" && k[3] === todayAnchor && k[4] === todayAnchor;
+          return op === "operations" || financeTodaySlice || staffTodaySlice;
+        }
+        const op = k[1];
+        const sameRange = k[3] === periodFrom && k[4] === periodTo;
+        return (
+          sameRange && (op === "finance" || op === "orders" || op === "staff")
+        );
+      },
+    }) > 0;
 
   return (
-    <div className="flex-1 flex flex-col relative">
-      {isLoading && <LoadingOverlay />}
+    <div className="flex-1 flex flex-col min-h-0 relative">
       <Header
         title={store?.name}
         subtitle={store?.address || undefined}
         Icon={BarChart3}
       >
         <button
-          onClick={handleRefresh}
-          disabled={isLoading}
-          className="text-(--color-primary) disabled:opacity-50"
+          onClick={() => handleRefresh()}
+          disabled={!storeId}
           title="Reload"
+          className="text-(--color-primary) disabled:opacity-50"
         >
-          <RefreshCw size={24} className={isLoading ? "animate-spin" : ""} />
+          <RefreshCw
+            size={24}
+            className={fetchingAny ? "animate-spin" : undefined}
+          />
         </button>
       </Header>
 
-      <div className="flex-1 relative">
-        <div className="absolute inset-0 flex">
-          <div className="flex-1 overflow-auto pb-4">
-            <div className="p-4 pb-2 flex items-center justify-between gap-2">
-              <span className="font-semibold text-(--color-text-secondary) text-sm text-nowrap">
-                {periodLabel}
-              </span>
-              <select
-                value={period}
-                onChange={(e) => setPeriod(e.target.value as PeriodType)}
-                className="w-fit"
-              >
-                <option value="today">Hôm nay</option>
-                <option value="yesterday">Hôm qua</option>
-                <option value="thisWeek">Tuần này</option>
-                <option value="lastWeek">Tuần trước</option>
-                <option value="thisMonth">Tháng này</option>
-                <option value="lastMonth">Tháng trước</option>
-              </select>
-            </div>
+      <div className="bg-(--color-bg-surface) flex border-b border-(--color-border-main) overflow-x-auto shrink-0">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={overviewTab === "today"}
+          onClick={() => setOverviewTab("today")}
+          className={cn(
+            "flex-1 px-4 py-2 text-sm whitespace-nowrap font-medium border-b-2",
+            overviewTab === "today"
+              ? "border-(--color-primary) text-(--color-primary)"
+              : "border-transparent text-(--color-text-secondary)",
+          )}
+        >
+          Hôm nay
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={overviewTab === "period"}
+          onClick={() => setOverviewTab("period")}
+          className={cn(
+            "flex-1 px-4 py-2 text-sm whitespace-nowrap font-medium border-b-2",
+            overviewTab === "period"
+              ? "border-(--color-primary) text-(--color-primary)"
+              : "border-transparent text-(--color-text-secondary)",
+          )}
+        >
+          Kỳ
+        </button>
+      </div>
 
-            <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
-              <div className="px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Plus size={20} className="text-(--color-success)" />
-                  <span className="font-medium">Doanh thu</span>
-                </div>
-                <span className="font-semibold text-(--color-success) tabular-nums">
-                  {formatMoney(data.revenue)}
-                </span>
-              </div>
+      {overviewTab === "period" ? (
+        <div className="shrink-0 bg-(--color-bg-surface) border-b border-(--color-border-main) px-4 py-2">
+          <select
+            id="overview-period-preset"
+            value={periodPreset}
+            aria-label="Khoảng thống kê"
+            onChange={(e) =>
+              setPeriodPreset(e.target.value as OverviewPeriodPreset)
+            }
+            className="w-full text-sm bg-(--color-bg-surface) text-(--color-text-main) font-medium border-0 outline-none"
+          >
+            <option value="today">Hôm nay</option>
+            <option value="yesterday">Hôm qua</option>
+            <option value="thisWeek">Tuần này</option>
+            <option value="lastWeek">Tuần trước</option>
+            <option value="thisMonth">Tháng này</option>
+            <option value="lastMonth">Tháng trước</option>
+          </select>
+        </div>
+      ) : null}
 
-              <div className="px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Minus size={20} className="text-(--color-danger)" />
-                  <span className="font-medium">Chi tiêu</span>
-                </div>
-                <span className="font-semibold text-(--color-danger) tabular-nums">
-                  {formatMoney(data.expense)}
-                </span>
-              </div>
-              <div className="px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Utensils size={20} className="text-(--color-warning)" />
-                  <span className="font-semibold">Đơn hàng</span>
-                </div>
-                <span className="font-semibold text-(--color-warning) tabular-nums">
-                  {data.orderCount}
-                </span>
-              </div>
-            </div>
-
-            {data.topItems.length > 0 && (
-              <>
-                <div className="p-4 pb-2 font-semibold text-(--color-text-secondary)">
-                  Các món bán chạy
-                </div>
-                <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
-                  {data.topItems.map((item, index) => {
-                    const style = topItemRankStyle(index);
-                    return (
-                      <div
-                        key={index}
-                        className="px-4 py-3 flex items-center justify-between gap-3"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span
-                            className={cn(
-                              "w-6 text-center tabular-nums shrink-0",
-                              style.rank,
-                            )}
-                          >
-                            {index + 1}
-                          </span>
-                          <span className={cn("truncate", style.name)}>
-                            {item.name}
-                          </span>
-                        </div>
-                        <span className={cn("tabular-nums shrink-0", style.qty)}>
-                          {item.qty}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
+      <div className="flex-1 relative min-h-0">
+        <div className="absolute inset-0 flex" {...swipeHandlers}>
+          <div className="relative flex-1 min-h-0 overflow-auto pb-4">
+            {!storeId ? (
+              <p className="p-4 text-(--color-text-secondary)">
+                Chọn cửa hàng để xem thống kê.
+              </p>
+            ) : overviewTab === "today" ? (
+              <OverviewTodayTab storeId={storeId} />
+            ) : (
+              <OverviewPeriodTab
+                storeId={storeId}
+                from={periodFrom}
+                to={periodTo}
+                periodPreset={periodPreset}
+              />
             )}
           </div>
         </div>

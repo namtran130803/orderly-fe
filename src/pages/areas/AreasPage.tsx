@@ -139,10 +139,15 @@ export const AreasPage: React.FC = () => {
                         key={t.id}
                         className="px-4 py-3 flex justify-between items-center gap-2"
                       >
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0 flex items-center gap-2">
                           <p className="text-(--color-text-main) truncate">
                             {t.name}
                           </p>
+                          {t.orderId != null ? (
+                            <span className="text-[10px] bg-(--color-warning) text-(--color-bg-surface) px-1.5 py-0.5 font-medium shrink-0">
+                              Có đơn
+                            </span>
+                          ) : null}
                         </div>
 
                         <div className="flex items-center gap-4">

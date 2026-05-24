@@ -79,3 +79,76 @@ export function todayVnDateString(): string {
   const day = String(vnTime.getUTCDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
+
+/**
+ * ISO weekday từ chuỗi YYYY-MM-DD (calendar VN khớp BE: trưa UTC).
+ * Thứ 2 = 1 … Chủ nhật = 7.
+ */
+export function vnIsoWeekdayFromYmd(yyyyMmDd: string): number {
+  const d = new Date(`${yyyyMmDd}T12:00:00.000Z`);
+  const wd = d.getUTCDay();
+  return wd === 0 ? 7 : wd;
+}
+
+/** Cộng/trừ số ngày lịch trên YYYY-MM-DD (trưa UTC, khớp @db.Date / BE). */
+export function addVnCalendarDays(yyyyMmDd: string, deltaDays: number): string {
+  const base = new Date(`${yyyyMmDd}T12:00:00.000Z`);
+  return new Date(base.getTime() + deltaDays * 86_400_000).toISOString().slice(0, 10);
+}
+
+export type OverviewPeriodPreset =
+  | 'today'
+  | 'yesterday'
+  | 'thisWeek'
+  | 'lastWeek'
+  | 'thisMonth'
+  | 'lastMonth';
+
+/** Khoảng from–to inclusive theo ngày VN (chuỗi gửi API dashboard). */
+export function getOverviewPeriodRangeVN(preset: OverviewPeriodPreset): {
+  from: string;
+  to: string;
+} {
+  const today = todayVnDateString();
+
+  switch (preset) {
+    case 'today':
+      return { from: today, to: today };
+    case 'yesterday': {
+      const y = addVnCalendarDays(today, -1);
+      return { from: y, to: y };
+    }
+    case 'thisWeek': {
+      const iso = vnIsoWeekdayFromYmd(today);
+      const from = addVnCalendarDays(today, -(iso - 1));
+      return { from, to: today };
+    }
+    case 'lastWeek': {
+      const iso = vnIsoWeekdayFromYmd(today);
+      const thisMonday = addVnCalendarDays(today, -(iso - 1));
+      const from = addVnCalendarDays(thisMonday, -7);
+      const to = addVnCalendarDays(from, 6);
+      return { from, to };
+    }
+    case 'thisMonth': {
+      const [yStr, moStr] = today.split('-');
+      return { from: `${yStr}-${moStr}-01`, to: today };
+    }
+    case 'lastMonth': {
+      const [yStr, moStr] = today.split('-');
+      let y = Number(yStr);
+      let m = Number(moStr) - 1;
+      if (m < 1) {
+        m = 12;
+        y -= 1;
+      }
+      const mm = String(m).padStart(2, '0');
+      const from = `${y}-${mm}-01`;
+      const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+      const dd = String(lastDay).padStart(2, '0');
+      return { from, to: `${y}-${mm}-${dd}` };
+    }
+    default:
+      return { from: today, to: today };
+  }
+}

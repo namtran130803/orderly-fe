@@ -133,7 +133,7 @@ export const SelectTablePage: React.FC = () => {
 
             <div className="mt-4 bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
               {filteredTables.map((t) => {
-                const isServing = t.orderId !== null;
+                const isServing = t.orderId != null;
 
                 return (
                   <button
@@ -143,11 +143,11 @@ export const SelectTablePage: React.FC = () => {
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-(--color-text-main)">{t.name}</span>
-                      {isServing && (
-                        <span className="text-[10px] bg-(--color-warning) text-(--color-bg-surface) px-1.5 py-0.5 rounded font-medium">
+                      {isServing ? (
+                        <span className="text-[10px] bg-(--color-warning) text-(--color-bg-surface) px-1.5 py-0.5 font-medium shrink-0">
                           Gọi thêm
                         </span>
-                      )}
+                      ) : null}
                     </div>
                     <div className="flex items-center gap-2">
                       <ChevronRight size={20} className="text-(--color-text-placeholder)" />

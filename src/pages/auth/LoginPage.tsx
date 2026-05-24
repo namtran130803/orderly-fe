@@ -48,7 +48,7 @@ export const LoginPage: React.FC = () => {
 
       <form
         onSubmit={handleSubmit((data) => mutate(data), onError)}
-        className="flex-1 flex flex-col relative"
+        className="flex-1 flex flex-col"
       >
         {isPending && <LoadingOverlay />}
         <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">

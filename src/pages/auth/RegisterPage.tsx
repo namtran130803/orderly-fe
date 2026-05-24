@@ -46,7 +46,7 @@ export const RegisterPage: React.FC = () => {
         Đăng ký tài khoản mới
       </h2>
 
-      <form onSubmit={handleSubmit((data) => mutate(data), onError)} className="flex-1 flex flex-col relative">
+      <form onSubmit={handleSubmit((data) => mutate(data), onError)} className="flex-1 flex flex-col">
         {isPending && <LoadingOverlay />}
         <div className="bg-(--color-bg-surface) border-y border-(--color-border-main) divide-y divide-(--color-border-main)">
           <div className="px-4 flex h-[50px] items-center gap-4">
