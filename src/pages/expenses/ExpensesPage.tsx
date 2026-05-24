@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Trash2, Pencil, CirclePlus, HandCoins, Loader } from "lucide-react";
+import { Trash2, Pencil, CirclePlus, HandCoins, Loader, Sparkles } from "lucide-react";
 import {
   useInfiniteQuery,
   useMutation,
@@ -23,6 +23,7 @@ export const ExpensesPage: React.FC = () => {
   const canCreate = usePerm(PERMS.expenses.create);
   const canUpdate = usePerm(PERMS.expenses.update);
   const canDelete = usePerm(PERMS.expenses.delete);
+  const canAi = usePerm(PERMS.ai.expense_analyze) || usePerm(PERMS.ai.expense_generate);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteQuery({
@@ -78,11 +79,18 @@ export const ExpensesPage: React.FC = () => {
     <div className="flex-1 flex flex-col relative">
       {(isLoading || isDeleting) && <LoadingOverlay />}
       <Header Icon={HandCoins} title="Chi tiêu">
-        {canCreate && (
-          <Link to={paths.expenses.create} className="text-(--color-primary)">
-            <CirclePlus size={24} />
-          </Link>
-        )}
+        <div className="flex items-center gap-3">
+          {canAi && (
+            <Link to={paths.expenses.ai} className="text-(--color-primary)">
+              <Sparkles size={24} />
+            </Link>
+          )}
+          {canCreate && (
+            <Link to={paths.expenses.create} className="text-(--color-primary)">
+              <CirclePlus size={24} />
+            </Link>
+          )}
+        </div>
       </Header>
 
       <div className="flex-1 relative">

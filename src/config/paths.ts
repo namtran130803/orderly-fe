@@ -23,7 +23,8 @@ export const paths = {
     expenses: {
         index: `${expenses}`,
         create: `${expenses}/create`,
-        edit: (id: string | number) => `${expenses}/${id}/edit`
+        edit: (id: string | number) => `${expenses}/${id}/edit`,
+        ai: `${expenses}/ai`,
     },
     settings: {
         index: settings,
@@ -54,7 +55,8 @@ export const paths = {
         items: {
             create: `${menu}/items/create`,
             edit: (id: string | number) => `${menu}/items/${id}/edit`,
-        }
+        },
+        ai: `${menu}/ai`,
     },
     areas: {
         index: areas,

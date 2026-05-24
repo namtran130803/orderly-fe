@@ -18,6 +18,7 @@ import { OverviewPage } from "./pages/overview/OverviewPage";
 import { ExpensesPage } from "./pages/expenses/ExpensesPage";
 import { paths } from "./config/paths";
 import { ExpensesFormPage } from "./pages/expenses/ExpensesFormPage";
+import { AIExpensePage } from "./pages/expenses/AIExpensePage";
 import { SettingsPage } from "./pages/settings/SettingsPage";
 import { HrGuidePage } from "./pages/settings/HrGuidePage";
 import { EmployeesPage } from "./pages/employees/EmployeesPage";
@@ -30,6 +31,7 @@ import { MenuPage } from "./pages/menu/MenuPage";
 import { CategoriesFormPage } from "./pages/menu/CategoriesFormPage";
 import { MenuItemsFormPage } from "./pages/menu/MenuItemsFormPage";
 import { CategoriesReorderPage } from "./pages/menu/CategoriesReorderPage";
+import { AIMenuPage } from "./pages/menu/AIMenuPage";
 import { AreasPage } from "./pages/areas/AreasPage";
 import { AreasFormPage } from "./pages/areas/AreasFormPage";
 import { TablesFormPage } from "./pages/areas/TablesFormPage";
@@ -101,6 +103,10 @@ const router = createBrowserRouter([
                     path: paths.expenses.create,
                     element: <ExpensesFormPage type="create" />
                   },
+                  {
+                    path: paths.expenses.ai,
+                    element: <AIExpensePage />
+                  },
                   // Settings
                   {
                     path: paths.settings.index,
@@ -165,6 +171,10 @@ const router = createBrowserRouter([
                   {
                     path: paths.menu.categories.reorder,
                     element: <CategoriesReorderPage />
+                  },
+                  {
+                    path: paths.menu.ai,
+                    element: <AIMenuPage />
                   },
                   // Areas
                   {

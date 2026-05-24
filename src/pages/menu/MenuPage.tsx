@@ -6,6 +6,7 @@ import {
   BookOpen,
   CirclePlus,
   ArrowUpDown,
+  Sparkles,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -30,6 +31,7 @@ export const MenuPage: React.FC = () => {
   const canMenuItemsCreate = usePerm(PERMS.menu_items.create);
   const canMenuItemsUpdate = usePerm(PERMS.menu_items.update);
   const canMenuItemsDelete = usePerm(PERMS.menu_items.delete);
+  const canAIMenu = usePerm(PERMS.ai.menu_analyze) || usePerm(PERMS.ai.menu_generate);
 
   const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
     queryKey: ["categories", storeId],
@@ -90,6 +92,15 @@ export const MenuPage: React.FC = () => {
       {isPending && <LoadingOverlay />}
       <Header title="Thực đơn" Icon={BookOpen} backUrl={paths.settings.index}>
         <div className="flex items-center gap-4">
+          {canAIMenu && (
+            <Link
+              to={paths.menu.ai}
+              className="text-(--color-primary)"
+            >
+              <Sparkles size={20} />
+            </Link>
+          )}
+
           {categories.length > 1 && canCategoriesReorder && (
             <Link
               to={paths.menu.categories.reorder}

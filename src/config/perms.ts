@@ -108,4 +108,10 @@ export const PERMS = {
     lock: "payroll.lock",
     unlock: "payroll.unlock",
   },
+  ai: {
+    menu_analyze: "ai.menu_analyze",
+    menu_generate: "ai.menu_generate",
+    expense_analyze: "ai.expense_analyze",
+    expense_generate: "ai.expense_generate",
+  },
 } as const;
