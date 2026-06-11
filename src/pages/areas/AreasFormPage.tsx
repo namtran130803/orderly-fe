@@ -36,6 +36,7 @@ export const AreasFormPage: React.FC<Props> = ({ type }) => {
         : areaService.update(storeId!, area.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['areas', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['tables', storeId] });
       navigateBackOrTo(navigate, paths.areas.index);
     },
   });
