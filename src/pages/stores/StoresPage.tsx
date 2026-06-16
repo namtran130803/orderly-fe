@@ -49,6 +49,13 @@ export const StoresPage: React.FC = () => {
     }
   }, [stores, currentStore, isLoading, setStore, navigate]);
 
+  // Auto-redirect to create page when no stores exist
+  useEffect(() => {
+    if (!isLoading && stores.length === 0) {
+      navigate(paths.stores.create, { replace: true });
+    }
+  }, [stores, isLoading, navigate]);
+
   const { mutate: deleteStore, isPending: isDeleting } = useMutation({
     mutationFn: (storeId: number) => storeService.remove(storeId),
     onSuccess: async (_, storeId) => {
