@@ -46,10 +46,10 @@ export const SubscriptionPage: React.FC = () => {
   const setStore = useStoreStore((s) => s.setStore);
   const storeId = store?.id;
 
-  const currentQuery = useQuery({
-    queryKey: ["subscription-current", storeId],
+  const statusQuery = useQuery({
+    queryKey: ["subscription-status", storeId],
     queryFn: async () => {
-      const res = await subscriptionService.current(storeId!);
+      const res = await subscriptionService.status(storeId!);
       return res.data.data;
     },
     enabled: !!storeId,
@@ -64,9 +64,9 @@ export const SubscriptionPage: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!store || !currentQuery.data?.subscription) return;
-    setStore({ ...store, subscription: currentQuery.data.subscription });
-  }, [currentQuery.data?.subscription, setStore]);
+    if (!store || !statusQuery.data) return;
+    setStore({ ...store, subscription: statusQuery.data });
+  }, [statusQuery.data, setStore]);
 
   const checkoutMutation = useMutation({
     mutationFn: (days: number) => subscriptionService.checkout(storeId!, days),
@@ -77,7 +77,7 @@ export const SubscriptionPage: React.FC = () => {
     },
   });
 
-  const subscription = currentQuery.data?.subscription ?? store?.subscription;
+  const subscription = statusQuery.data ?? store?.subscription;
   const plans = plansQuery.data ?? [];
 
   const {
@@ -101,7 +101,7 @@ export const SubscriptionPage: React.FC = () => {
   });
 
   const periods = periodsData?.pages.flatMap((p) => p.data) ?? [];
-  const isLoading = currentQuery.isLoading || plansQuery.isLoading || isPeriodsLoading;
+  const isLoading = statusQuery.isLoading || plansQuery.isLoading || isPeriodsLoading;
 
   const { ref: sentinelRef } = useInView({
     onChange: (inView) => {
@@ -122,7 +122,7 @@ export const SubscriptionPage: React.FC = () => {
         <button
           type="button"
           onClick={() => {
-            queryClient.invalidateQueries({ queryKey: ["subscription-current", storeId] });
+            queryClient.invalidateQueries({ queryKey: ["subscription-status", storeId] });
             queryClient.invalidateQueries({ queryKey: ["subscription-plans"] });
           }}
           className="text-(--color-primary)"

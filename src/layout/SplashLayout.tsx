@@ -6,6 +6,7 @@ import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/stores/auth.store';
 import { clearAll } from '@/stores/clear';
 import { paths } from '@/config/paths';
+import { isTokenExpired } from '@/utils/jwt';
 
 const authRoutes = [paths.auth.login, paths.auth.register];
 
@@ -37,6 +38,12 @@ export const SplashLayout: React.FC = () => {
   useEffect(() => {
     if (isError) clearAll();
   }, [isError]);
+
+  useEffect(() => {
+    if (token && isTokenExpired(token)) {
+      clearAll();
+    }
+  }, [token]);
 
   useEffect(() => {
     if (isFetching) return;

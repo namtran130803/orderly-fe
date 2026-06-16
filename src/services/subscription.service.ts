@@ -57,17 +57,12 @@ export const subscriptionService = {
       `/subscriptions/plans`,
     ),
 
-  current: (storeId: number) =>
+  status: (storeId: number) =>
     api.get<{
       success: true;
-      data: { subscription: StoreSubscription; periods: SubscriptionPeriod[] };
+      data: StoreSubscription;
       message: string;
-    }>(`/stores/${storeId}/subscription`),
-
-  payments: (storeId: number) =>
-    api.get<{ success: true; data: Payment[]; message: string }>(
-      `/stores/${storeId}/subscription/payments`,
-    ),
+    }>(`/stores/${storeId}/subscription/status`),
 
   periods: (
     storeId: number,
