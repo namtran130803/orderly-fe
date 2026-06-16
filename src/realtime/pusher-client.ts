@@ -5,10 +5,14 @@ import {
   REALTIME_EVENTS,
   storeOrdersChannel,
   type OrderRealtimePayload,
+  type SubscriptionRealtimePayload,
 } from '@/realtime/constants';
 import { isRealtimeEnabled, resolvePusherEndpoints } from '@/realtime/config';
 
 type OrderChangedHandler = (payload: OrderRealtimePayload) => void;
+type SubscriptionPaymentPaidHandler = (
+  payload: SubscriptionRealtimePayload,
+) => void;
 
 let sharedClient: Pusher | null = null;
 
@@ -121,6 +125,25 @@ function bindOrderHandlers(
   };
 }
 
+function bindSubscriptionHandlers(
+  channel: Channel,
+  onPaymentPaid: SubscriptionPaymentPaidHandler,
+): () => void {
+  const handler = (data: SubscriptionRealtimePayload | string) => {
+    const payload =
+      typeof data === 'string'
+        ? (JSON.parse(data) as SubscriptionRealtimePayload)
+        : data;
+    onPaymentPaid(payload);
+  };
+
+  channel.bind(REALTIME_EVENTS.SUBSCRIPTION_PAYMENT_PAID, handler);
+
+  return () => {
+    channel.unbind(REALTIME_EVENTS.SUBSCRIPTION_PAYMENT_PAID, handler);
+  };
+}
+
 export type StoreOrdersSubscription = {
   channel: Channel;
   unsubscribe: () => void;
@@ -145,6 +168,51 @@ export function subscribeStoreOrders(
     attached = true;
     activeChannel = client.subscribe(channelName);
     unbindHandlers = bindOrderHandlers(activeChannel, onOrderChanged);
+  };
+
+  const onConnected = () => {
+    client.connection.unbind('connected', onConnected);
+    attach();
+  };
+
+  if (client.connection.state === 'connected') {
+    attach();
+  } else {
+    client.connection.bind('connected', onConnected);
+    if (client.connection.state === 'disconnected' || client.connection.state === 'failed') {
+      client.connect();
+    }
+  }
+
+  return {
+    channel: client.channel(channelName) ?? client.subscribe(channelName),
+    unsubscribe: () => {
+      cancelled = true;
+      client.connection.unbind('connected', onConnected);
+      unbindHandlers?.();
+      client.unsubscribe(channelName);
+    },
+  };
+}
+
+export function subscribeStoreSubscriptionPayments(
+  storeId: number,
+  onPaymentPaid: SubscriptionPaymentPaidHandler,
+): StoreOrdersSubscription | null {
+  const client = getOrCreateClient();
+  if (!client) return null;
+
+  const channelName = storeOrdersChannel(storeId);
+  let unbindHandlers: (() => void) | null = null;
+  let activeChannel: Channel | null = null;
+  let cancelled = false;
+  let attached = false;
+
+  const attach = () => {
+    if (cancelled || attached) return;
+    attached = true;
+    activeChannel = client.subscribe(channelName);
+    unbindHandlers = bindSubscriptionHandlers(activeChannel, onPaymentPaid);
   };
 
   const onConnected = () => {

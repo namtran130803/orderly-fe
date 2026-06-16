@@ -15,6 +15,7 @@ import {
   Palmtree,
   CircleDollarSign,
   Info,
+  CreditCard,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { paths } from "@/config/paths";
@@ -34,6 +35,11 @@ export const SettingsPage: React.FC = () => {
   const canStatusesList = usePerm(PERMS.statuses.list);
   const canStoreRolesList = usePerm(PERMS.store_roles.list);
   const canEmployeesList = usePerm(PERMS.employees.list);
+  const canSubscriptionCurrent = usePerm(PERMS.subscriptions.current);
+  const canSubscriptionCheckout = usePerm(PERMS.subscriptions.checkout);
+  const canSubscriptionPeriods = usePerm(PERMS.subscriptions.periods);
+  const canShowSubscription =
+    canSubscriptionCurrent && canSubscriptionCheckout && canSubscriptionPeriods;
 
   const handleAttendanceClick = () => {
     if (canAttendanceList) navigate(paths.attendance.index);
@@ -89,6 +95,24 @@ export const SettingsPage: React.FC = () => {
                   className="text-(--color-text-placeholder)"
                 />
               </Link>
+
+              {canShowSubscription && (
+                <Link
+                  to={paths.settings.subscription}
+                  className="w-full px-4 py-3 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="text-(--color-warning)" size={20} />
+                    <span className="text-sm text-(--color-text-main) font-medium">
+                      Gia hạn
+                    </span>
+                  </div>
+                  <ChevronRight
+                    size={20}
+                    className="text-(--color-text-placeholder)"
+                  />
+                </Link>
+              )}
 
               {canMenuItemsList && (
                 <Link

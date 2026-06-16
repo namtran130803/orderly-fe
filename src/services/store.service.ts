@@ -7,6 +7,16 @@ export type Store = {
   userId: number;
   createdAt: string;
   roleName: string[];
+  subscription?: StoreSubscription;
+};
+
+export type StoreSubscription = {
+  status: "TRIALING" | "ACTIVE" | "EXPIRED";
+  isReadOnly: boolean;
+  currentPeriodStart: string | null;
+  currentPeriodEnd: string | null;
+  daysRemaining: number;
+  trialUsed?: boolean;
 };
 
 export const storeService = {

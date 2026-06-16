@@ -21,6 +21,9 @@ import { ExpensesFormPage } from "./pages/expenses/ExpensesFormPage";
 import { AIExpensePage } from "./pages/expenses/AIExpensePage";
 import { SettingsPage } from "./pages/settings/SettingsPage";
 import { HrGuidePage } from "./pages/settings/HrGuidePage";
+import { SubscriptionPage } from "./pages/subscription/SubscriptionPage";
+import { SubscriptionCheckoutPage } from "./pages/subscription/SubscriptionCheckoutPage";
+import { RenewalHistoryPage } from "./pages/subscription/RenewalHistoryPage";
 import { EmployeesPage } from "./pages/employees/EmployeesPage";
 import { EmployeeFormPage } from "./pages/employees/EmployeeFormPage";
 import { RolesPage } from "./pages/roles/RolesPage";
@@ -115,6 +118,18 @@ const router = createBrowserRouter([
                   {
                     path: paths.settings.hrGuide,
                     element: <HrGuidePage />
+                  },
+                  {
+                    path: paths.settings.subscription,
+                    element: <SubscriptionPage />
+                  },
+                  {
+                    path: paths.settings.subscriptionCheckout,
+                    element: <SubscriptionCheckoutPage />
+                  },
+                  {
+                    path: paths.settings.subscriptionRenewals,
+                    element: <RenewalHistoryPage />
                   },
                   // Employees
                   {

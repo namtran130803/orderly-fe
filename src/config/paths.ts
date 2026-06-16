@@ -29,6 +29,9 @@ export const paths = {
     settings: {
         index: settings,
         hrGuide: `${settings}/hr-guide`,
+        subscription: `${settings}/subscription`,
+        subscriptionCheckout: `${settings}/subscription/checkout`,
+        subscriptionRenewals: `${settings}/subscription/renewals`,
     },
     employees: {
         index: '/employees',

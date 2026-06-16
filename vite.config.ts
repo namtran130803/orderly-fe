@@ -18,7 +18,6 @@ export default defineConfig({
     },
   },
   server: {
-    https: true,
     host: '0.0.0.0',
     proxy: {
       '/api': {

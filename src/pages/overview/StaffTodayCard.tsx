@@ -1,11 +1,7 @@
-import { CalendarCheck2, CircleDollarSign } from "lucide-react";
-
 import { cn } from "@/lib/cn";
-import { paths } from "@/config/paths";
 import type { DashboardStaffToday } from "@/types/dashboard";
 
 import { OverviewBand, overviewListGroupClass } from "./OverviewBand";
-import { OverviewNavLink } from "./OverviewNavLink";
 import { OverviewSectionTitle } from "./OverviewSectionTitle";
 import { OverviewStatRow } from "./OverviewStatRow";
 

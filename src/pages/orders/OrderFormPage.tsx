@@ -10,7 +10,6 @@ import { formatMoney } from "@/utils/formatMoney";
 import { groupItems } from "@/utils/groupItems";
 import { formatId } from "@/utils/format";
 import { useStoreStore } from "@/stores/store.store";
-import { todayVnDateString } from "@/lib/date-vn";
 import { useOrderStore } from "@/stores/order.store";
 import { useStoreOrdersRealtime } from "@/hooks/useStoreOrdersRealtime";
 

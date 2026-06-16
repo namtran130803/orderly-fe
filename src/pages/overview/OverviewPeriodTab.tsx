@@ -1,10 +1,7 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarCheck2, CircleDollarSign } from "lucide-react";
 
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { cn } from "@/lib/cn";
-import { paths } from "@/config/paths";
 import type { OverviewPeriodPreset } from "@/lib/date-vn";
 import { dashboardService } from "@/services/dashboard.service";
 import { formatMoney } from "@/utils/formatMoney";
@@ -14,7 +11,6 @@ import {
   CompareMoneyRow,
 } from "./CompareExpand";
 import { OverviewBand, overviewListGroupClass } from "./OverviewBand";
-import { OverviewNavLink } from "./OverviewNavLink";
 import { OverviewSectionTitle } from "./OverviewSectionTitle";
 import { OverviewStatRow } from "./OverviewStatRow";
 import { StatusPipeline } from "./StatusPipeline";
@@ -75,17 +71,15 @@ function hourBandLabel(h: number): string {
   return `${h}h → ${h + 1}h`;
 }
 
+void overviewPeriodSubtitle;
+
 export function OverviewPeriodTab({
   storeId,
   from,
   to,
   periodPreset,
 }: Props) {
-  const periodLabel = useMemo(
-    () => overviewPeriodSubtitle(periodPreset, from, to),
-    [periodPreset, from, to],
-  );
-
+  void periodPreset;
   const financeQuery = useQuery({
     queryKey: ["dashboard", "finance", storeId, from, to],
     queryFn: async () => {

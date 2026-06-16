@@ -361,11 +361,6 @@ export const AttendanceScanPage: React.FC = () => {
     };
   }, [releaseMedia]);
 
-  const handleResetScan = useCallback(() => {
-    setScanSuccess(null);
-    void startCamera();
-  }, [startCamera]);
-
   if (!storeId) return null;
 
   const showRetry = !requesting && !streamActive && !scanSuccess;

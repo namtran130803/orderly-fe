@@ -13,6 +13,12 @@ import { useStoreStore } from "@/stores/store.store";
 import { usePerm } from "@/hooks/usePerm";
 import { clearStore as clearStoreContext } from "@/stores/clear";
 
+const subscriptionLabel = (status?: string) => {
+  if (status === "TRIALING") return "Dùng thử";
+  if (status === "ACTIVE") return "Còn hạn";
+  return "Hết hạn";
+};
+
 export const StoresPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -143,6 +149,19 @@ export const StoresPage: React.FC = () => {
                               </p>
                             )}
                             <div className="flex flex-wrap gap-1 mt-1.5">
+                              <span
+                                className={cn(
+                                  "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border transition-all",
+                                  st.subscription?.isReadOnly
+                                    ? "bg-red-50 text-red-700 border-red-200"
+                                    : "bg-amber-50 text-amber-700 border-amber-200",
+                                )}
+                              >
+                                {subscriptionLabel(st.subscription?.status)}
+                                {st.subscription?.daysRemaining
+                                  ? ` • ${st.subscription.daysRemaining} ngày`
+                                  : ""}
+                              </span>
                               {st.roleName && st.roleName.length > 0 ? (
                                 st.roleName.map((role) => (
                                   <span

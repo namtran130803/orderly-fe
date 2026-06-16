@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, CirclePlus, HandCoins, ImagePlus, Sparkles, Trash2 } from "lucide-react";
+import { Camera, CirclePlus, ImagePlus, Sparkles, Trash2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
