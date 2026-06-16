@@ -53,12 +53,15 @@ export const SubscriptionCheckoutPage: React.FC = () => {
         subscription: payload.subscription,
       });
       queryClient.invalidateQueries({
-        queryKey: ["subscription-current", store.id],
+        queryKey: ["subscription-status", store.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["subscription-periods", store.id],
       });
       queryClient.invalidateQueries({
         queryKey: ["stores"],
       });
-      toast.success("Thanh toán thành công, cửa hàng đã được gia hạn");
+      toast.success("Thanh toán thành công");
 
       window.setTimeout(() => {
         navigate(-1);
@@ -117,7 +120,7 @@ export const SubscriptionCheckoutPage: React.FC = () => {
             {paid && (
               <div className="mt-4 flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-2 text-sm font-medium">
                 <CheckCircle2 size={18} />
-                Thanh toán thành công, đang cập nhật gia hạn.
+                Thanh toán thành công.
               </div>
             )}
           </section>
