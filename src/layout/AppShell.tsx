@@ -1,7 +1,11 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { cn } from '@/lib/cn';
 
 export const AppShell: React.FC = () => {
+  const location = useLocation();
+  const isLanding = location.pathname === '/ladi';
+
   return (
     <div className="h-svh w-svw">
       <Toaster
@@ -11,7 +15,14 @@ export const AppShell: React.FC = () => {
           style: { fontSize: '14px' },
         }}
       />
-      <div className='h-full max-w-[390px] mx-auto bg-(--color-bg-main) border-x border-(--color-border-main)'>
+      <div
+        className={cn(
+          'h-full mx-auto bg-(--color-bg-main)',
+          isLanding
+            ? 'w-full overflow-auto scroll-smooth'
+            : 'max-w-[390px] border-x border-(--color-border-main)',
+        )}
+      >
         <Outlet />
       </div>
     </div>

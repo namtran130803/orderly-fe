@@ -59,9 +59,7 @@ export const SplashLayout: React.FC = () => {
   if (isFetching || isRedirecting) {
     return (
       <div className="h-full flex flex-col items-center justify-center bg-(--color-bg-surface)">
-        <div className="size-12 bg-(--color-primary) flex items-center justify-center text-(--color-bg-surface) mb-4">
-          <StoreIcon size={24} />
-        </div>
+        <img src="/orderly-icon.svg" alt="Logo" className="size-12 mb-4" />
         <h1 className="text-2xl font-bold text-(--color-text-main) tracking-tight mb-1">Orderly</h1>
         <div className="h-0.5 w-8 bg-(--color-primary) mb-6" />
         <div className="size-5 border-2 border-(--color-primary) border-t-transparent rounded-full animate-spin" />

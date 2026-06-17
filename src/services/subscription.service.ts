@@ -5,6 +5,7 @@ export type SubscriptionPlan = {
   id: number;
   code: string;
   name: string;
+  note: string;
   days: number;
   price: number;
   isActive: boolean;

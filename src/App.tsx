@@ -57,11 +57,16 @@ import { LeaveDetailPage } from "./pages/leave/LeaveDetailPage";
 import { LeaveRequestPage } from "./pages/leave/LeaveRequestPage";
 import { PayrollPage } from "./pages/payroll/PayrollPage";
 import { PayrollEmployeeDetailPage } from "./pages/payroll/PayrollEmployeeDetailPage";
+import { LandingPage } from "./pages/ladi/LandingPage";
 
 const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
+      {
+        path: "/ladi",
+        element: <LandingPage />,
+      },
       {
         element: <SplashLayout />,
         children: [

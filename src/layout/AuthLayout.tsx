@@ -1,6 +1,5 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { Store as StoreIcon } from 'lucide-react';
 
 interface AuthLayoutProps {
   children?: React.ReactNode;
@@ -12,8 +11,8 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
       {/* Brand Header */}
       <div className="bg-(--color-bg-surface) border-b border-(--color-border-main) h-[200px] flex flex-col items-center justify-center">
         {/* Logo */}
-        <div className="size-12 bg-(--color-primary) flex items-center justify-center text-(--color-bg-surface) mb-4">
-          <StoreIcon size={24} />
+        <div className="bg-(--color-primary) mb-4">
+          <img src="/orderly-icon.svg" alt="Logo" className="size-12" />
         </div>
         {/* Name */}
         <h1 className="text-2xl font-bold text-(--color-text-main) tracking-tight">Orderly</h1>
