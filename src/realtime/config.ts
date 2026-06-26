@@ -32,7 +32,12 @@ export function resolvePusherEndpoints(): PusherEndpointConfig | null {
 
   if (useViteProxy && typeof window !== 'undefined') {
     const { hostname, port, protocol } = window.location;
-    const fallbackPort = Number(import.meta.env.VITE_PUSHER_WS_PORT ?? 5173);
+    const defaultPort = protocol === 'https:' ? 443 : 80;
+    const envPort = Number(import.meta.env.VITE_PUSHER_WS_PORT ?? '');
+    let fallbackPort = Number.isInteger(envPort) && envPort > 0 ? envPort : defaultPort;
+    if (protocol === 'https:' && fallbackPort === 80) {
+      fallbackPort = 443;
+    }
     const parsedPort = port ? Number(port) : fallbackPort;
     const tls = protocol === 'https:';
     return {

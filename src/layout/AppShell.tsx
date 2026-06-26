@@ -4,7 +4,7 @@ import { cn } from '@/lib/cn';
 
 export const AppShell: React.FC = () => {
   const location = useLocation();
-  const isLanding = location.pathname === '/ladi';
+  const isLanding = location.pathname === '/';
 
   return (
     <div className="h-svh w-svw">

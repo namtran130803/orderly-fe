@@ -64,7 +64,7 @@ const router = createBrowserRouter([
     element: <AppShell />,
     children: [
       {
-        path: "/ladi",
+        index: true,
         element: <LandingPage />,
       },
       {

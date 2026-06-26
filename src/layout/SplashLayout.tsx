@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Store as StoreIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/stores/auth.store';
